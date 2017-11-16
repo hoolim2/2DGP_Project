@@ -26,6 +26,11 @@ charNumX_five= random.randrange(0, 11)
 charNumY_five= random.randrange(0, 7)
 #====================
 
+right_key_down=False
+left_key_down=False
+up_key_down=False
+isPlaying=False
+
 charsize=53
 
 charSize1=220
@@ -38,22 +43,22 @@ charSize6=80
 def createCharacter():
     global charNumX_one,charNumX_two,charNumX_three,charNumX_four,charNumX_five
     global charNumY_one,charNumY_two,charNumY_three,charNumY_four,charNumY_five
-    if(charNumX_one == -1.):
+    if(charNumX_one == -1):
         charNumX_one = charNumX_two
         charNumY_one = charNumY_two
         charNumX_two=-1
         charNumY_two=-1
-    if (charNumX_two == -1.):
+    if (charNumX_two == -1):
         charNumX_two = charNumX_three
         charNumY_two = charNumY_three
         charNumX_three = -1
         charNumY_three = -1
-    if (charNumX_three == -1.):
+    if (charNumX_three == -1):
         charNumX_three = charNumX_four
         charNumY_three = charNumY_four
         charNumX_four = -1
         charNumY_four = -1
-    if (charNumX_four == -1.):
+    if (charNumX_four == -1):
         charNumX_four = charNumX_five
         charNumY_four = charNumY_five
         charNumX_five = -1
@@ -72,21 +77,43 @@ class Background:
 
 
 class lineOne:
+
     def __init__(self):
         self.x, self.y = 640-charSize1/2,100
         self.dir=1
         self.image = load_image('hero_sprite.png')
 
     def update(self,frame_time):
-        self.x += self.dir
-        if self.x >= (640-charSize1/2)+5:
-            self.dir = -10*frame_time
-        elif self.x <= (640-charSize1/2)-5:
-            self.dir = 10*frame_time
+        global isPlaying, right_key_down, left_key_down, up_key_down,charNumX_one,charNumY_one
+        if isPlaying==False:
+            self.x += self.dir
+            if self.x >= (640-charSize1/2)+5:
+                self.dir = -10*frame_time
+            elif self.x <= (640-charSize1/2)-5:
+                self.dir = 10*frame_time
+        elif isPlaying==True:
+            print('call')
+            if right_key_down == True:
+                self.x += 2000*frame_time
+            elif left_key_down == True:
+                self.x -= 2000*frame_time
+            elif up_key_down == True:
+                self.y += 2000*frame_time
+            if self.x > 1280 or self.x < 0 or self.y > 720:
+                isPlaying = False
+                right_key_down = False
+                left_key_down = False
+                up_key_down = False
+                self.x, self.y = 640 - charSize1 / 2, 100
+                charNumX_one = -1
+                charNumY_one = -1
 
     def draw(self):
         self.image.clip_draw_to_origin(charNumX_one*charsize,charNumY_one*charsize,charsize,charsize,self.x,self.y,charSize1,charSize1)
         self.image.clip_draw
+
+
+
 
 class lineTwo:
     def __init__(self):
@@ -204,6 +231,7 @@ def get_frame_time():
 
 
 def handle_events():
+    global right_key_down,left_key_down,up_key_down,isPlaying
     events=get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -211,10 +239,18 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
-            changeLine()
+            interrogation()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
+            right_key_down = True
+            isPlaying=True
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
+            left_key_down = True
+            isPlaying = True
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
+            up_key_down=True
+            isPlaying = True
     pass
 
-# team FACTORY
 def update():
     createCharacter()
     frame_time=get_frame_time()
@@ -241,7 +277,9 @@ def draw():
     pass
 
 def changeLine():
-    global charNumX_one,charNumY_one
-    charNumX_one=-1.
-    charNumY_one = -1.
     pass
+
+def interrogation():
+    pass
+
+

@@ -1,3 +1,4 @@
+
 import random
 import json
 import os
@@ -17,7 +18,6 @@ line_three = None
 line_four=None
 line_five=None
 background = None
-font = None
 
 #====================
 charNumX_one, charNumX_two, charNumX_three, charNumX_four=-1,-1,-1,-1
@@ -25,15 +25,6 @@ charNumY_one, charNumY_two, charNumY_three, charNumY_four=-1,-1,-1,-1
 charNumX_five= random.randrange(0, 11)
 charNumY_five= random.randrange(0, 7)
 #====================
-
-right_key_down=False
-left_key_down=False
-up_key_down=False
-isPlaying=False
-damagePlay=False
-
-userHP=3
-
 charsize=53
 charSize1=220
 charSize2=160
@@ -41,6 +32,19 @@ charSize3=130
 charSize4=105
 charSize5=95
 charSize6=80
+
+right_key_down=False
+left_key_down=False
+up_key_down=False
+isPlaying=False
+damagePlay=False
+interrogation=False
+
+userHP=3
+
+speak="안녕하세요 우실딱인데요"
+
+current_time = 0.0
 
 def createCharacter():
     global charNumX_one,charNumX_two,charNumX_three,charNumX_four,charNumX_five
@@ -72,7 +76,7 @@ def createCharacter():
 
 class Background:
     def __init__(self):
-        self.image = load_image('background.png')
+        self.image = load_image('resource\\background.png')
 
     def draw(self):
         self.image.draw(640, 360)
@@ -85,7 +89,7 @@ class lineOne:
         self.dir=1
         self.flyspd = 500*random.randrange(1, 5)
         self.delayTime = 0
-        self.image = load_image('hero_sprite.png')
+        self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,charNumX_one,charNumY_one
@@ -123,8 +127,7 @@ class lineOne:
                 self.x, self.y = 640 - charSize1 / 2, 100
                 self.flyspd=500*random.randrange(3, 6)
                 self.delayTime=0
-                charNumX_one = -1
-                charNumY_one = -1
+                changeCharacter()
 
     def draw(self):
         self.image.clip_draw_to_origin(charNumX_one*charsize,charNumY_one*charsize,charsize,charsize,self.x,self.y,charSize1,charSize1)
@@ -134,7 +137,7 @@ class lineTwo:
     def __init__(self):
         self.x, self.y = 640-charSize2/2,200
         self.dir=-1
-        self.image = load_image('hero_sprite.png')
+        self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
@@ -152,7 +155,7 @@ class lineThree:
         self.x = 640-charSize3/2
         self.y =250
         self.dir=-1
-        self.image = load_image('hero_sprite.png')
+        self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
@@ -170,7 +173,7 @@ class lineFour:
         self.x = 640-charSize4/2
         self.y =300
         self.dir=1
-        self.image = load_image('hero_sprite.png')
+        self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
@@ -189,7 +192,7 @@ class lineFive:
         self.x = 640-charSize5/2
         self.y =330
         self.dir=-1
-        self.image = load_image('hero_sprite.png')
+        self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
@@ -207,7 +210,7 @@ class heartImage:
         self.HP = userHP
         self.size=120
         self.dir=0.2
-        self.image = load_image('heart.png')
+        self.image = load_image('resource\\heart.png')
 
     def update(self):
         self.HP = userHP
@@ -215,9 +218,9 @@ class heartImage:
         self.y -= self.dir/2
         self.size += self.dir
         if self.size<=120:
-            self.dir=0.5
-        if self.size>=125:
-            self.dir= -0.2
+            self.dir=0.8
+        if self.size>=130:
+            self.dir= -0.5
 
     def draw(self):
         if (self.HP >= 1):
@@ -229,22 +232,56 @@ class heartImage:
         elif (self.HP <= 0):
             pass
 
+class ui_Font:
+
+    def __init__(self):
+        self.image = load_image('dialogue\\%d.png'%random.randrange(1, 4))
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(640,530,720,200)
+
+class Dialogue:
+    def __init__(self):
+        self.image = load_image('resource\\dialogue.png')
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(640,500,720,226)
+
+#effect class=====================================
+
 class damageEffect:
     def __init__(self):
         self.playdamage=0
-        self.image = load_image('damage.png')
+        self.Yframes = 3
+        self.play_frames = 0
+        self.framepass = 0
+        self.image = load_image('resource\\damage.png')
 
     def update(self,frame_time):
-        global damagePlay
-        self.playdamage+=1*frame_time
-        if self.playdamage>=1:
-            damagePlay=False
-            self.playdamage = 0
+        global damagePlay,charNumX_one,charNumY_one
+        if damagePlay==True:
+            self.playdamage+=frame_time
+            if self.framepass>=3:
+                self.play_frames = (self.play_frames + 1) % 5
+                self.framepass=0
+                if self.play_frames==0:
+                    self.Yframes -=1
+            self.framepass += 1
+            if self.playdamage>=1:
+                damagePlay=False
+                self.Yframes = 3
+                self.play_frames=0
+                self.playdamage = 0
+                changeCharacter()
 
     def draw(self):
-        self.image.draw(640,360,1280,720)
-
-#effect class=====================================
+        self.image.clip_draw_to_origin(self.play_frames * 192, self.Yframes * 192, 192, 192, 0, -280, 1280, 1280)
 
 class slashEffect:
 
@@ -252,7 +289,7 @@ class slashEffect:
         self.Yframes = 4
         self.play_frames = 0
         self.framepass=0
-        self.image = load_image('fx_slash.png')
+        self.image = load_image('resource\\fx_slash.png')
 
     def update(self):
         if isPlaying==True:
@@ -274,7 +311,7 @@ class slashadEffect:
         self.Yframes = 6
         self.play_frames = 0
         self.framepass=0
-        self.image = load_image('fx_slashadvence.png')
+        self.image = load_image('resource\\fx_slashadvence.png')
 
     def update(self):
         if isPlaying==True:
@@ -296,7 +333,7 @@ class magicEffect:
         self.Yframes = 5
         self.play_frames = 0
         self.framepass=0
-        self.image = load_image('fx_magic.png')
+        self.image = load_image('resource\\fx_magic.png')
 
     def update(self):
         if isPlaying==True:
@@ -318,7 +355,7 @@ class drainEffect:
         self.Yframes = 5
         self.play_frames = 0
         self.framepass = 0
-        self.image = load_image('fx_darkness.png')
+        self.image = load_image('resource\\fx_darkness.png')
 
     def update(self):
         if isPlaying==True:
@@ -340,7 +377,7 @@ class healEffect:
         self.Yframes = 4
         self.play_frames = 0
         self.framepass =0
-        self.image = load_image('fx_heal.png')
+        self.image = load_image('resource\\fx_heal.png')
 
     def update(self):
         if isPlaying==True:
@@ -362,7 +399,7 @@ class bloodEffect:
         self.Yframes = 10
         self.play_frames = 0
         self.framepass =0
-        self.image = load_image('fx_blood.png')
+        self.image = load_image('resource\\fx_blood.png')
 
     def update(self):
         if isPlaying==True:
@@ -379,7 +416,7 @@ class bloodEffect:
         self.image.clip_draw_to_origin(self.play_frames*192, self.Yframes*192,192,192,390,-50,500,500)
 
 def enter():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font
     createCharacter()
     line_one=lineOne()
     line_two = lineTwo()
@@ -394,13 +431,15 @@ def enter():
     blood_fx = bloodEffect()
     heart = heartImage()
     damage_fx = damageEffect()
+    dialogue=Dialogue()
+    ui_font=ui_Font()
 
     background = Background()
     pass
 
 
 def exit():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font
     del(background)
     del(line_one)
     del(line_two)
@@ -415,6 +454,8 @@ def exit():
     del (heart)
     del (damage_fx)
     del(pause)
+    del(dialogue)
+    del(ui_font)
     pass
 
 
@@ -424,9 +465,6 @@ def pause():
 
 def resume():
     pass
-
-
-current_time = 0.0
 
 def get_frame_time():
     global current_time
@@ -445,7 +483,7 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
-            interrogation()
+            Interrogation()
         if isPlaying == False:
             if event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
                 right_key_down = True
@@ -502,12 +540,14 @@ def draw():
             drain_fx.draw()
             magic_fx.draw()
 
-
     if up_key_down == True:
         if isPlaying == True:
             heal_fx.draw()
     #-----------------
     heart.draw()
+    if interrogation==True:
+        dialogue.draw()
+        ui_font.draw()
     if damagePlay==True:
         damage_fx.draw()
 
@@ -516,12 +556,20 @@ def draw():
     delay(0.01)
     pass
 
-def interrogation():
-    pass
+def Interrogation():
+    global interrogation
+    interrogation=True
 
 def haveDamage():
     global userHP,damagePlay
     userHP-=1
     damagePlay=True
 
+def changeCharacter():
+    global interrogation,charNumX_one,charNumY_one,ui_font
+    interrogation = False
+    charNumX_one = -1
+    charNumY_one = -1
+    del (ui_font)
+    ui_font = ui_Font()
 

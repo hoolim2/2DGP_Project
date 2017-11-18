@@ -30,9 +30,11 @@ right_key_down=False
 left_key_down=False
 up_key_down=False
 isPlaying=False
+damagePlay=False
+
+userHP=3
 
 charsize=53
-
 charSize1=220
 charSize2=160
 charSize3=130
@@ -75,6 +77,7 @@ class Background:
     def draw(self):
         self.image.draw(640, 360)
 
+#cahracter class=======================
 
 class lineOne:
     def __init__(self):
@@ -85,9 +88,16 @@ class lineOne:
         self.image = load_image('hero_sprite.png')
 
     def update(self,frame_time):
-        global isPlaying, right_key_down, left_key_down, up_key_down,charNumX_one,charNumY_one
+        global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,charNumX_one,charNumY_one
         if isPlaying==False:
             self.x += self.dir
+            if damagePlay == True:
+                print('call')
+                charSize1 = 400
+                self.x = 640 - charSize1 / 2
+            elif damagePlay == False:
+                charSize1 = 220
+                self.x = 640 - charSize1 / 2
             if self.x >= (640-charSize1/2)+5:
                 self.dir = -10*frame_time
             elif self.x <= (640-charSize1/2)-5:
@@ -105,7 +115,7 @@ class lineOne:
                     self.x -= 1500*frame_time
                     self.y += self.flyspd * frame_time
                     self.flyspd -= 5000 * frame_time
-            if self.x > 1280 or self.x < -charSize1 or self.y > 720:
+            if self.x > 1280 or self.x < 0-charSize1 or self.y > 720:
                 isPlaying = False
                 right_key_down = False
                 left_key_down = False
@@ -118,7 +128,6 @@ class lineOne:
 
     def draw(self):
         self.image.clip_draw_to_origin(charNumX_one*charsize,charNumY_one*charsize,charsize,charsize,self.x,self.y,charSize1,charSize1)
-        self.image.clip_draw
 
 
 class lineTwo:
@@ -191,6 +200,51 @@ class lineFive:
 
     def draw(self):
         self.image.clip_draw_to_origin(charNumX_five*charsize,charNumY_five*charsize,charsize,charsize,self.x,self.y,charSize5,charSize5)
+
+class heartImage:
+    def __init__(self):
+        self.x,self.y=50,600
+        self.HP = userHP
+        self.size=120
+        self.dir=0.2
+        self.image = load_image('heart.png')
+
+    def update(self):
+        self.HP = userHP
+        self.x -= self.dir/2
+        self.y -= self.dir/2
+        self.size += self.dir
+        if self.size<=120:
+            self.dir=0.5
+        if self.size>=125:
+            self.dir= -0.2
+
+    def draw(self):
+        if (self.HP >= 1):
+            self.image.clip_draw_to_origin(0, 0, 512, 512, self.x, self.y,self.size ,self.size)
+            if (self.HP >= 2):
+                self.image.clip_draw_to_origin(0, 0, 512, 512, self.x + 70, self.y, self.size, self.size)
+                if (self.HP >= 3):
+                    self.image.clip_draw_to_origin(0, 0, 512, 512, self.x + 140, self.y, self.size, self.size)
+        elif (self.HP <= 0):
+            pass
+
+class damageEffect:
+    def __init__(self):
+        self.playdamage=0
+        self.image = load_image('damage.png')
+
+    def update(self,frame_time):
+        global damagePlay
+        self.playdamage+=1*frame_time
+        if self.playdamage>=1:
+            damagePlay=False
+            self.playdamage = 0
+
+    def draw(self):
+        self.image.draw(640,360,1280,720)
+
+#effect class=====================================
 
 class slashEffect:
 
@@ -325,7 +379,7 @@ class bloodEffect:
         self.image.clip_draw_to_origin(self.play_frames*192, self.Yframes*192,192,192,390,-50,500,500)
 
 def enter():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx
     createCharacter()
     line_one=lineOne()
     line_two = lineTwo()
@@ -338,13 +392,15 @@ def enter():
     heal_fx= healEffect()
     drain_fx= drainEffect()
     blood_fx = bloodEffect()
+    heart = heartImage()
+    damage_fx = damageEffect()
 
     background = Background()
     pass
 
 
 def exit():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx
     del(background)
     del(line_one)
     del(line_two)
@@ -356,6 +412,8 @@ def exit():
     del (heal_fx)
     del(drain_fx)
     del (blood_fx)
+    del (heart)
+    del (damage_fx)
     del(pause)
     pass
 
@@ -398,11 +456,14 @@ def handle_events():
             elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
                 up_key_down=True
                 isPlaying = True
+            elif event.type == SDL_KEYDOWN and event.key == SDLK_z:
+                haveDamage()
     pass
 
 def update():
     createCharacter()
     frame_time=get_frame_time()
+
     line_one.update(frame_time)
     line_two.update(frame_time)
     line_three.update(frame_time)
@@ -414,7 +475,8 @@ def update():
     heal_fx.update()
     drain_fx.update()
     blood_fx.update()
-
+    heart.update()
+    damage_fx.update(frame_time)
     pass
 
 
@@ -445,15 +507,21 @@ def draw():
         if isPlaying == True:
             heal_fx.draw()
     #-----------------
+    heart.draw()
+    if damagePlay==True:
+        damage_fx.draw()
+
     update_canvas()
 
     delay(0.01)
     pass
 
-def changeLine():
-    pass
-
 def interrogation():
     pass
+
+def haveDamage():
+    global userHP,damagePlay
+    userHP-=1
+    damagePlay=True
 
 

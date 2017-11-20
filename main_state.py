@@ -36,13 +36,13 @@ charSize6=80
 right_key_down=False
 left_key_down=False
 up_key_down=False
+x_key_down=False
 isPlaying=False
 damagePlay=False
+explosion=False
 interrogation=False
 
 userHP=3
-
-speak="안녕하세요 우실딱인데요"
 
 current_time = 0.0
 
@@ -92,23 +92,25 @@ class lineOne:
         self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
-        global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,charNumX_one,charNumY_one
+        #Idle
+        global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,x_key_down,charNumX_one,charNumY_one,explosion
         if isPlaying==False:
             self.x += self.dir
             if damagePlay == True:
-                print('call')
                 charSize1 = 400
                 self.x = 640 - charSize1 / 2
             elif damagePlay == False:
                 charSize1 = 220
-                self.x = 640 - charSize1 / 2
             if self.x >= (640-charSize1/2)+5:
+                self.x=(640 - charSize1 / 2) + 5
                 self.dir = -10*frame_time
             elif self.x <= (640-charSize1/2)-5:
+                self.x=(640 - charSize1 / 2) - 5
                 self.dir = 10*frame_time
+        #play Anmation
         elif isPlaying==True:
             self.delayTime+=frame_time
-            if up_key_down == True and self.delayTime>0.4:
+            if up_key_down == True and self.delayTime>0.8:
                 self.y += 1500 * frame_time
             if self.delayTime > 0.7:
                 if right_key_down == True:
@@ -119,15 +121,34 @@ class lineOne:
                     self.x -= 1500*frame_time
                     self.y += self.flyspd * frame_time
                     self.flyspd -= 5000 * frame_time
+            if x_key_down == True and self.delayTime > 2.5:
+                explosion=True
+                self.x += 1500 * frame_time
+                self.y += self.flyspd * frame_time
+        #Defalt
             if self.x > 1280 or self.x < 0-charSize1 or self.y > 720:
+                if explosion==False:
+                    isPlaying = False
+                    right_key_down = False
+                    left_key_down = False
+                    up_key_down = False
+                    x_key_down =False
+                    explosion=False
+                    self.x, self.y = 640 - charSize1 / 2, 100
+                    self.flyspd=500*random.randrange(3, 6)
+                    self.delayTime=0
+                    changeCharacter()
+            if self.delayTime>5:
                 isPlaying = False
                 right_key_down = False
                 left_key_down = False
                 up_key_down = False
+                x_key_down = False
                 self.x, self.y = 640 - charSize1 / 2, 100
-                self.flyspd=500*random.randrange(3, 6)
-                self.delayTime=0
+                self.flyspd = 500 * random.randrange(3, 6)
+                self.delayTime = 0
                 changeCharacter()
+                explosion = False
 
     def draw(self):
         self.image.clip_draw_to_origin(charNumX_one*charsize,charNumY_one*charsize,charsize,charsize,self.x,self.y,charSize1,charSize1)
@@ -136,15 +157,24 @@ class lineOne:
 class lineTwo:
     def __init__(self):
         self.x, self.y = 640-charSize2/2,200
+        self.flyspd = 500*random.randrange(1, 5)
         self.dir=-1
         self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
-        self.x += self.dir
-        if self.x >= (640-charSize2/2)+3:
-            self.dir = -5*frame_time
-        elif self.x <= (640-charSize2/2)-3:
-            self.dir = 5*frame_time
+        if explosion==True:
+            self.x -= 1500 * frame_time
+            self.y += self.flyspd * frame_time
+        elif explosion==False:
+            self.y=200
+            self.x += self.dir
+            self.flyspd = 500 * random.randrange(1, 5)
+            if self.x >= (640-charSize2/2)+3:
+                self.x=(640 - charSize2 / 2) + 3
+                self.dir = -5*frame_time
+            elif self.x <= (640-charSize2/2)-3:
+                self.x=(640 - charSize2 / 2) - 3
+                self.dir = 5*frame_time
 
     def draw(self):
         self.image.clip_draw_to_origin(charNumX_two*charsize,charNumY_two*charsize,charsize,charsize,self.x,self.y,charSize2,charSize2)
@@ -300,6 +330,7 @@ class slashEffect:
                     self.Yframes -=1
             self.framepass += 1
         if isPlaying==False:
+            self.play_frames = 0
             self.Yframes = 4
 
     def draw(self):
@@ -322,6 +353,7 @@ class slashadEffect:
                     self.Yframes -=1
             self.framepass += 1
         if isPlaying==False:
+            self.play_frames = 0
             self.Yframes = 6
 
     def draw(self):
@@ -344,6 +376,7 @@ class magicEffect:
                     self.Yframes -=1
             self.framepass += 1
         if isPlaying==False:
+            self.play_frames = 0
             self.Yframes = 5
 
     def draw(self):
@@ -366,6 +399,7 @@ class drainEffect:
                     self.Yframes -=1
             self.framepass += 1
         if isPlaying==False:
+            self.play_frames = 0
             self.Yframes = 5
 
     def draw(self):
@@ -374,21 +408,22 @@ class drainEffect:
 class healEffect:
 
     def __init__(self):
-        self.Yframes = 4
+        self.Yframes = 5
         self.play_frames = 0
         self.framepass =0
         self.image = load_image('resource\\fx_heal.png')
 
     def update(self):
         if isPlaying==True:
-            if self.framepass>=2:
+            if self.framepass>=4:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
         if isPlaying==False:
-            self.Yframes = 4
+            self.play_frames = 0
+            self.Yframes = 5
 
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames*192, self.Yframes*192,192,192,390,-50,500,500)
@@ -410,13 +445,61 @@ class bloodEffect:
                     self.Yframes -=1
             self.framepass += 1
         if isPlaying==False:
+            self.play_frames = 0
             self.Yframes = 10
 
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames*192, self.Yframes*192,192,192,390,-50,500,500)
 
+class blessEffect:
+
+    def __init__(self):
+        self.Yframes = 9
+        self.play_frames = 0
+        self.framepass =0
+        self.image = load_image('resource\\fx_bless.png')
+
+    def update(self):
+        if isPlaying==True:
+            if self.framepass>=7:
+                self.play_frames = (self.play_frames + 1) % 5
+                self.framepass=0
+                if self.play_frames==0:
+                    self.Yframes -=1
+            self.framepass += 1
+        if isPlaying==False:
+            self.play_frames = 0
+            self.Yframes = 9
+
+    def draw(self):
+        self.image.clip_draw_to_origin(self.play_frames*192, self.Yframes*192,192,192,0,-350,1280,1280)
+
+class explosionEffect:
+
+    def __init__(self):
+        self.Yframes = 12
+        self.play_frames = 0
+        self.framepass =0
+        self.image = load_image('resource\\fx_explosion.png')
+
+    def update(self):
+        if isPlaying==True:
+            if self.framepass>=6:
+                self.play_frames = (self.play_frames + 1) % 4
+                self.framepass=0
+                if self.play_frames==0:
+                    self.Yframes -=1
+            self.framepass += 1
+        if isPlaying==False:
+            self.play_frames = 0
+            self.Yframes = 12
+
+    def draw(self):
+        self.image.clip_draw_to_origin(self.play_frames*512, self.Yframes*288,512,288,0,0,1280,720)
+
+
 def enter():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font,bless_fx,explosion_fx
     createCharacter()
     line_one=lineOne()
     line_two = lineTwo()
@@ -431,6 +514,8 @@ def enter():
     blood_fx = bloodEffect()
     heart = heartImage()
     damage_fx = damageEffect()
+    bless_fx= blessEffect()
+    explosion_fx=explosionEffect()
     dialogue=Dialogue()
     ui_font=ui_Font()
 
@@ -439,7 +524,7 @@ def enter():
 
 
 def exit():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font,bless_fx,explosion_fx
     del(background)
     del(line_one)
     del(line_two)
@@ -475,7 +560,7 @@ def get_frame_time():
 
 
 def handle_events():
-    global right_key_down,left_key_down,up_key_down,isPlaying
+    global right_key_down,left_key_down,up_key_down,x_key_down,isPlaying
     events=get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -493,6 +578,9 @@ def handle_events():
                 isPlaying = True
             elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
                 up_key_down=True
+                isPlaying = True
+            elif event.type == SDL_KEYDOWN and event.key == SDLK_m:
+                x_key_down = True
                 isPlaying = True
             elif event.type == SDL_KEYDOWN and event.key == SDLK_z:
                 haveDamage()
@@ -514,6 +602,8 @@ def update():
     drain_fx.update()
     blood_fx.update()
     heart.update()
+    bless_fx.update()
+    explosion_fx.update()
     damage_fx.update(frame_time)
     pass
 
@@ -543,6 +633,12 @@ def draw():
     if up_key_down == True:
         if isPlaying == True:
             heal_fx.draw()
+
+    if x_key_down == True:
+        if isPlaying == True:
+            blood_fx.draw()
+            bless_fx.draw()
+            explosion_fx.draw()
     #-----------------
     heart.draw()
     if interrogation==True:
@@ -566,10 +662,13 @@ def haveDamage():
     damagePlay=True
 
 def changeCharacter():
-    global interrogation,charNumX_one,charNumY_one,ui_font
+    global interrogation,charNumX_one,charNumY_one,charNumX_two,charNumY_two,ui_font
     interrogation = False
     charNumX_one = -1
     charNumY_one = -1
+    if explosion==True:
+        charNumX_two = -1
+        charNumY_two = -1
     del (ui_font)
     ui_font = ui_Font()
 

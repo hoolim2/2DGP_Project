@@ -43,17 +43,20 @@ explosion=False
 interrogation=False
 
 userHP=3
+totalScore= -40
 
 current_time = 0.0
 
 def createCharacter():
     global charNumX_one,charNumX_two,charNumX_three,charNumX_four,charNumX_five
     global charNumY_one,charNumY_two,charNumY_three,charNumY_four,charNumY_five
+    global totalScore
     if(charNumX_one == -1):
         charNumX_one = charNumX_two
         charNumY_one = charNumY_two
         charNumX_two=-1
         charNumY_two=-1
+        totalScore += 10
     if (charNumX_two == -1):
         charNumX_two = charNumX_three
         charNumY_two = charNumY_three
@@ -93,7 +96,7 @@ class lineOne:
 
     def update(self,frame_time):
         #Idle
-        global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,x_key_down,charNumX_one,charNumY_one,explosion
+        global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,x_key_down,charNumX_one,charNumY_one,explosion,totalScore
         if isPlaying==False:
             self.x += self.dir
             if damagePlay == True:
@@ -144,6 +147,7 @@ class lineOne:
                 left_key_down = False
                 up_key_down = False
                 x_key_down = False
+                totalScore+=80
                 self.x, self.y = 640 - charSize1 / 2, 100
                 self.flyspd = 500 * random.randrange(3, 6)
                 self.delayTime = 0
@@ -262,6 +266,8 @@ class heartImage:
         elif (self.HP <= 0):
             pass
 
+#UI class==========================================================================
+
 class ui_Font:
 
     def __init__(self):
@@ -283,7 +289,24 @@ class Dialogue:
     def draw(self):
         self.image.draw(640,500,720,226)
 
-#effect class=====================================
+class ScoreUI:
+    font = None
+
+    global totalScore
+    def __init__(self):
+        if (ScoreUI.font) == None:
+            ScoreUI.font=load_font('ENCR10B-Bold.TTF', 16)
+        self.score= float(totalScore)
+
+    def update(self):
+        self.score = float(totalScore)
+        print(self.score)
+
+    def draw(self):
+        #ScoreUI.font.draw(1000,650,'Score: %f' % (self.score) ,(255, 255, 255))
+        pass
+
+    #effect class=====================================
 
 class damageEffect:
     def __init__(self):
@@ -497,9 +520,10 @@ class explosionEffect:
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames*512, self.Yframes*288,512,288,0,0,1280,720)
 
+#=====================================================
 
 def enter():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font,bless_fx,explosion_fx
+    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font,bless_fx,explosion_fx,score_ui
     createCharacter()
     line_one=lineOne()
     line_two = lineTwo()
@@ -516,8 +540,10 @@ def enter():
     damage_fx = damageEffect()
     bless_fx= blessEffect()
     explosion_fx=explosionEffect()
+
     dialogue=Dialogue()
     ui_font=ui_Font()
+    score_ui=ScoreUI()
 
     background = Background()
     pass
@@ -541,6 +567,7 @@ def exit():
     del(pause)
     del(dialogue)
     del(ui_font)
+    del(score_ui)
     pass
 
 
@@ -605,12 +632,14 @@ def update():
     bless_fx.update()
     explosion_fx.update()
     damage_fx.update(frame_time)
+    score_ui.update()
     pass
 
 
 def draw():
     clear_canvas()
     background.draw()
+    score_ui.draw()
     #------------------
     line_five.draw()
     line_four.draw()

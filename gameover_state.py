@@ -1,15 +1,18 @@
 import game_framework
+import title_state
 import main_state
+import start_state
+
 from pico2d import *
 
 
-name = "TitleState"
+name = "GameOverState"
 image = None
 
+
 def enter():
-    global image,gameovertime,fadeout_fx
-    image = load_image('resource\\title.png')
-    gameovertime = 0
+    global image
+    image = load_image('resource\\gameover.png')
     pass
 
 
@@ -28,7 +31,7 @@ def handle_events():
             if (event.type,event.key) ==(SDL_KEYDOWN,SDLK_ESCAPE):
                 game_framework.quit()
             elif (event.type,event.key) ==(SDL_KEYDOWN,SDLK_SPACE) :
-                game_framework.change_state(main_state)
+                game_framework.change_state(title_state)
     pass
 
 
@@ -48,9 +51,5 @@ def pause():
 
 def resume():
     pass
-
-
-
-
 
 

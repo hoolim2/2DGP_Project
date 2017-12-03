@@ -1,81 +1,12 @@
-
 import random
+import game_framework
+import title_state
+import gameover_state
 import json
 import os
 
 from pico2d import *
-
-import game_framework
-import title_state
-
-
 name = "MainState"
-
-pause = None
-line_one = None
-line_two = None
-line_three = None
-line_four=None
-line_five=None
-background = None
-
-#====================
-charNumX_one, charNumX_two, charNumX_three, charNumX_four=-1,-1,-1,-1
-charNumY_one, charNumY_two, charNumY_three, charNumY_four=-1,-1,-1,-1
-charNumX_five= random.randrange(0, 11)
-charNumY_five= random.randrange(0, 7)
-#====================
-charsize=53
-charSize1=220
-charSize2=160
-charSize3=130
-charSize4=105
-charSize5=95
-charSize6=80
-
-right_key_down=False
-left_key_down=False
-up_key_down=False
-x_key_down=False
-isPlaying=False
-damagePlay=False
-explosion=False
-interrogation=False
-
-userHP=3
-totalScore= -40
-
-current_time = 0.0
-
-def createCharacter():
-    global charNumX_one,charNumX_two,charNumX_three,charNumX_four,charNumX_five
-    global charNumY_one,charNumY_two,charNumY_three,charNumY_four,charNumY_five
-    global totalScore
-    if(charNumX_one == -1):
-        charNumX_one = charNumX_two
-        charNumY_one = charNumY_two
-        charNumX_two=-1
-        charNumY_two=-1
-        totalScore += 10
-    if (charNumX_two == -1):
-        charNumX_two = charNumX_three
-        charNumY_two = charNumY_three
-        charNumX_three = -1
-        charNumY_three = -1
-    if (charNumX_three == -1):
-        charNumX_three = charNumX_four
-        charNumY_three = charNumY_four
-        charNumX_four = -1
-        charNumY_four = -1
-    if (charNumX_four == -1):
-        charNumX_four = charNumX_five
-        charNumY_four = charNumY_five
-        charNumX_five = -1
-        charNumY_five = -1
-    if (charNumX_five == -1):
-        charNumX_five = random.randrange(0, 11)
-        charNumY_five = random.randrange(0, 7)
-
 
 class Background:
     def __init__(self):
@@ -86,81 +17,81 @@ class Background:
 
 #cahracter class=======================
 
-class lineOne:
+class characterFirstLine:
     def __init__(self):
-        self.x, self.y = 640-charSize1/2,100
+        self.x, self.y = 640 - lineFirstCharSize / 2, 100
         self.dir=1
-        self.flyspd = 500*random.randrange(1, 5)
+        self.flyspdX = 1500
+        self.flyspdY = 500 * random.randrange(1, 5)
         self.delayTime = 0
         self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         #Idle
-        global isPlaying, damagePlay,charSize1, right_key_down, left_key_down, up_key_down,x_key_down,charNumX_one,charNumY_one,explosion,totalScore
-        if isPlaying==False:
+        global animationIsPlaying, damagePlay,lineFirstCharSize, right_key_down, left_key_down, up_key_down,x_key_down,lineFirstNumX,lineFirstNumY,explosion,totalScore
+        if animationIsPlaying==False:
             self.x += self.dir
             if damagePlay == True:
-                charSize1 = 400
-                self.x = 640 - charSize1 / 2
+                lineFirstCharSize = 400
+                self.x = 640 - lineFirstCharSize / 2
             elif damagePlay == False:
-                charSize1 = 220
-            if self.x >= (640-charSize1/2)+5:
-                self.x=(640 - charSize1 / 2) + 5
+                lineFirstCharSize = 220
+            if self.x >= (640-lineFirstCharSize/2)+5:
+                self.x= (640 - lineFirstCharSize / 2) + 5
                 self.dir = -10*frame_time
-            elif self.x <= (640-charSize1/2)-5:
-                self.x=(640 - charSize1 / 2) - 5
+            elif self.x <= (640-lineFirstCharSize/2)-5:
+                self.x= (640 - lineFirstCharSize / 2) - 5
                 self.dir = 10*frame_time
         #play Anmation
-        elif isPlaying==True:
+        elif animationIsPlaying==True:
             self.delayTime+=frame_time
             if up_key_down == True and self.delayTime>0.8:
-                self.y += 1500 * frame_time
+                self.y += self.flyspdX * frame_time
             if self.delayTime > 0.7:
                 if right_key_down == True:
-                    self.x += 1500*frame_time
-                    self.y += self.flyspd*frame_time
-                    self.flyspd -= 5000*frame_time
+                    self.x += self.flyspdX*frame_time
+                    self.y += self.flyspdY * frame_time
+                    self.flyspdY -= 5000 * frame_time
                 elif left_key_down == True:
-                    self.x -= 1500*frame_time
-                    self.y += self.flyspd * frame_time
-                    self.flyspd -= 5000 * frame_time
+                    self.x -= self.flyspdX*frame_time
+                    self.y += self.flyspdY * frame_time
+                    self.flyspdY -= 5000 * frame_time
             if x_key_down == True and self.delayTime > 2.5:
                 explosion=True
-                self.x += 1500 * frame_time
-                self.y += self.flyspd * frame_time
-        #Defalt
-            if self.x > 1280 or self.x < 0-charSize1 or self.y > 720:
+                self.x += self.flyspdX * frame_time
+                self.y += self.flyspdY * frame_time
+        #Reset
+            if self.x > 1280 or self.x < 0-lineFirstCharSize or self.y > 720:
                 if explosion==False:
-                    isPlaying = False
+                    animationIsPlaying = False
                     right_key_down = False
                     left_key_down = False
                     up_key_down = False
                     x_key_down =False
                     explosion=False
-                    self.x, self.y = 640 - charSize1 / 2, 100
-                    self.flyspd=500*random.randrange(3, 6)
+                    self.x, self.y = 640 - lineFirstCharSize / 2, 100
+                    self.flyspdY= 500 * random.randrange(3, 6)
                     self.delayTime=0
-                    changeCharacter()
+                    characterChanger()
             if self.delayTime>5:
-                isPlaying = False
+                animationIsPlaying = False
                 right_key_down = False
                 left_key_down = False
                 up_key_down = False
                 x_key_down = False
                 totalScore+=80
-                self.x, self.y = 640 - charSize1 / 2, 100
-                self.flyspd = 500 * random.randrange(3, 6)
+                self.x, self.y = 640 - lineFirstCharSize / 2, 100
+                self.flyspdY = 500 * random.randrange(3, 6)
                 self.delayTime = 0
-                changeCharacter()
+                characterChanger()
                 explosion = False
 
     def draw(self):
-        self.image.clip_draw_to_origin(charNumX_one*charsize,charNumY_one*charsize,charsize,charsize,self.x,self.y,charSize1,charSize1)
+        self.image.clip_draw_to_origin(lineFirstNumX * characterImageSize, lineFirstNumY * characterImageSize, characterImageSize, characterImageSize, self.x, self.y, lineFirstCharSize, lineFirstCharSize)
 
-
-class lineTwo:
+class characterSecondLine:
     def __init__(self):
-        self.x, self.y = 640-charSize2/2,200
+        self.x, self.y = 640 - lineSecondCharSize / 2, 200
         self.flyspd = 500*random.randrange(1, 5)
         self.dir=-1
         self.image = load_image('resource\\hero_sprite.png')
@@ -173,72 +104,73 @@ class lineTwo:
             self.y=200
             self.x += self.dir
             self.flyspd = 500 * random.randrange(1, 5)
-            if self.x >= (640-charSize2/2)+3:
-                self.x=(640 - charSize2 / 2) + 3
+            if self.x >= (640-lineSecondCharSize/2)+3:
+                self.x= (640 - lineSecondCharSize / 2) + 3
                 self.dir = -5*frame_time
-            elif self.x <= (640-charSize2/2)-3:
-                self.x=(640 - charSize2 / 2) - 3
+            elif self.x <= (640-lineSecondCharSize/2)-3:
+                self.x= (640 - lineSecondCharSize / 2) - 3
                 self.dir = 5*frame_time
 
     def draw(self):
-        self.image.clip_draw_to_origin(charNumX_two*charsize,charNumY_two*charsize,charsize,charsize,self.x,self.y,charSize2,charSize2)
+        self.image.clip_draw_to_origin(lineSecondNumX * characterImageSize, lineSecondNumY * characterImageSize, characterImageSize, characterImageSize, self.x, self.y, lineSecondCharSize, lineSecondCharSize)
 
-class lineThree:
+class characterThirdLine:
     def __init__(self):
 
-        self.x = 640-charSize3/2
+        self.x = 640 - lineThirdCharSize / 2
         self.y =250
         self.dir=-1
         self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
-        if self.x >= (640-charSize3/2)+1:
+        if self.x >= (640-lineThirdCharSize/2)+1:
             self.dir = -2*frame_time
-        elif self.x <= (640-charSize3/2)-1:
+        elif self.x <= (640-lineThirdCharSize/2)-1:
             self.dir = 2*frame_time
         pass
 
     def draw(self):
-        self.image.clip_draw_to_origin(charNumX_three*charsize,charNumY_three*charsize,charsize,charsize,self.x,self.y,charSize3,charSize3)
+        self.image.clip_draw_to_origin(lineThirdNumX * characterImageSize, lineThirdNumY * characterImageSize, characterImageSize, characterImageSize, self.x, self.y, lineThirdCharSize, lineThirdCharSize)
 
-class lineFour:
+class characterForthLine:
     def __init__(self):
-        self.x = 640-charSize4/2
+        self.x = 640 - lineForthCharSize / 2
         self.y =300
         self.dir=1
         self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
-        if self.x >= (640-charSize4/2)+1:
+        if self.x >= (640-lineForthCharSize/2)+1:
             self.dir = -2*frame_time
-        elif self.x <= (640-charSize4/2)-1:
+        elif self.x <= (640-lineForthCharSize/2)-1:
             self.dir = 2*frame_time
         pass
 
     def draw(self):
-        self.image.clip_draw_to_origin(charNumX_four*charsize,charNumY_four*charsize,charsize,charsize,self.x,self.y,charSize4,charSize4)
+        self.image.clip_draw_to_origin(lineForthNumX * characterImageSize, lineForthNumY * characterImageSize, characterImageSize, characterImageSize, self.x, self.y, lineForthCharSize, lineForthCharSize)
 
-class lineFive:
+class characterFifthLine:
     global changeSign
     def __init__(self):
-        self.x = 640-charSize5/2
+        self.x = 640 - lineFifthCharSize / 2
         self.y =330
         self.dir=-1
         self.image = load_image('resource\\hero_sprite.png')
 
     def update(self,frame_time):
         self.x += self.dir
-        if self.x >= (640-charSize5/2)+1:
+        if self.x >= (640-lineFifthCharSize/2)+1:
             self.dir = -1*frame_time
-        elif self.x <= (640-charSize5/2)-1:
+        elif self.x <= (640-lineFifthCharSize/2)-1:
             self.dir = 1*frame_time
 
     def draw(self):
-        self.image.clip_draw_to_origin(charNumX_five*charsize,charNumY_five*charsize,charsize,charsize,self.x,self.y,charSize5,charSize5)
+        self.image.clip_draw_to_origin(lineFifthNumX * characterImageSize, lineFifthNumY * characterImageSize, characterImageSize, characterImageSize, self.x, self.y, lineFifthCharSize, lineFifthCharSize)
 
-class heartImage:
+#UI class==========================================================================
+class uiHeart:
     def __init__(self):
         self.x,self.y=50,600
         self.HP = userHP
@@ -266,12 +198,23 @@ class heartImage:
         elif (self.HP <= 0):
             pass
 
-#UI class==========================================================================
-
-class ui_Font:
+class uiDialogueText:
+    global characterType
 
     def __init__(self):
-        self.image = load_image('dialogue\\%d.png'%random.randrange(1, 4))
+        self.image=None
+        characterType = characterTypeGetter()
+        print(characterType)
+        print(lineFirstNumX,lineFirstNumY)
+        if self.image==None:
+            if characterType==0:
+                self.image = load_image('dialogue\\%d.png'%random.randint(1, 10))
+            elif characterType==1:
+                self.image = load_image('dialogue\\%d.png' % random.randint(11, 20))
+            elif characterType==2:
+                self.image = load_image('dialogue\\%d.png' % random.randint(21, 30))
+            else:
+                self.image = load_image('dialogue\\0.png')
 
     def update(self):
         pass
@@ -279,7 +222,7 @@ class ui_Font:
     def draw(self):
         self.image.draw(640,530,720,200)
 
-class Dialogue:
+class uiDialogueBox:
     def __init__(self):
         self.image = load_image('resource\\dialogue.png')
 
@@ -289,24 +232,51 @@ class Dialogue:
     def draw(self):
         self.image.draw(640,500,720,226)
 
-class ScoreUI:
+class uiScore:
     font = None
 
     global totalScore
     def __init__(self):
-        if (ScoreUI.font) == None:
-            ScoreUI.font=load_font('ENCR10B-Bold.TTF', 16)
+        if (uiScore.font) == None:
+            uiScore.font=load_font('ENCR10B-Bold.TTF', 16)
         self.score= float(totalScore)
 
     def update(self):
         self.score = float(totalScore)
-        print(self.score)
 
     def draw(self):
-        #ScoreUI.font.draw(1000,650,'Score: %f' % (self.score) ,(255, 255, 255))
+        #uiScore.font.draw(1000,650,'Score: %f' % (self.score) ,(255, 255, 255))
         pass
 
     #effect class=====================================
+
+class uiFadeout:
+    def __init__(self):
+        self.playanimation=0
+        self.Yframes = 3
+        self.play_frames = 0
+        self.framepass = 0
+        self.image = load_image('resource\\black_fadeout.png')
+
+    def update(self,frame_time):
+        self.playanimation+=frame_time
+        if self.framepass>=7:
+            self.play_frames = (self.play_frames + 1) % 5
+            self.framepass=0
+            if self.play_frames==0:
+                self.Yframes -=1
+        self.framepass += 1
+        if self.playanimation>=1.5:
+            self.Yframes = 3
+            self.play_frames=0
+            self.playdamage = 0
+
+    def draw(self):
+        self.image.clip_draw_to_origin(self.play_frames * 192, self.Yframes * 192, 192, 192, 0, -280, 1280, 1280)
+
+
+
+#effect class=========================================================================
 
 class damageEffect:
     def __init__(self):
@@ -317,7 +287,7 @@ class damageEffect:
         self.image = load_image('resource\\damage.png')
 
     def update(self,frame_time):
-        global damagePlay,charNumX_one,charNumY_one
+        global damagePlay,lineFirstNumX,lineFirstNumY
         if damagePlay==True:
             self.playdamage+=frame_time
             if self.framepass>=3:
@@ -331,7 +301,7 @@ class damageEffect:
                 self.Yframes = 3
                 self.play_frames=0
                 self.playdamage = 0
-                changeCharacter()
+                characterChanger()
 
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames * 192, self.Yframes * 192, 192, 192, 0, -280, 1280, 1280)
@@ -345,14 +315,14 @@ class slashEffect:
         self.image = load_image('resource\\fx_slash.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=2:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 4
 
@@ -368,14 +338,14 @@ class slashadEffect:
         self.image = load_image('resource\\fx_slashadvence.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=2:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 6
 
@@ -391,14 +361,14 @@ class magicEffect:
         self.image = load_image('resource\\fx_magic.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=2:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 5
 
@@ -414,14 +384,14 @@ class drainEffect:
         self.image = load_image('resource\\fx_darkness.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=2:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 5
 
@@ -437,14 +407,14 @@ class healEffect:
         self.image = load_image('resource\\fx_heal.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=4:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 5
 
@@ -460,14 +430,14 @@ class bloodEffect:
         self.image = load_image('resource\\fx_blood.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=2:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 10
 
@@ -483,14 +453,14 @@ class blessEffect:
         self.image = load_image('resource\\fx_bless.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=7:
                 self.play_frames = (self.play_frames + 1) % 5
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 9
 
@@ -506,14 +476,14 @@ class explosionEffect:
         self.image = load_image('resource\\fx_explosion.png')
 
     def update(self):
-        if isPlaying==True:
+        if animationIsPlaying==True:
             if self.framepass>=6:
                 self.play_frames = (self.play_frames + 1) % 4
                 self.framepass=0
                 if self.play_frames==0:
                     self.Yframes -=1
             self.framepass += 1
-        if isPlaying==False:
+        if animationIsPlaying==False:
             self.play_frames = 0
             self.Yframes = 12
 
@@ -523,40 +493,85 @@ class explosionEffect:
 #=====================================================
 
 def enter():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font,bless_fx,explosion_fx,score_ui
-    createCharacter()
-    line_one=lineOne()
-    line_two = lineTwo()
-    line_three = lineThree()
-    line_four = lineFour()
-    line_five = lineFive()
+    global background,lineFirst,lineSecond,lineThird,lineForth,lineFifth,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_Text,bless_fx,explosion_fx,score_ui,fadeout_fx
+    global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,damagePlay,explosion,interrogationFlag,characterType
+    global lineFirstNumX,lineSecondNumX,lineThirdNumX, lineForthNumX,lineFifthNumX,lineFirstNumY, lineSecondNumY, lineThirdNumY, lineForthNumY,lineFifthNumY
+    global characterImageSize,lineFirstCharSize,lineSecondCharSize,lineThirdCharSize,lineForthCharSize,lineFifthCharSize,typeKnight,typeMagician,typeCitizen,userHP,totalScore,current_time,gameovertime
+
+    right_key_down = False
+    left_key_down = False
+    up_key_down = False
+    x_key_down = False
+    animationIsPlaying = False
+    damagePlay = False
+    explosion = False
+    interrogationFlag = False
+
+    lineFirst = None
+    lineSecond = None
+    lineThird = None
+    lineForth = None
+    lineFifth = None
+    background = None
+    ui_Text = None
+    characterType = -1
+    gameovertime = 0
+
+    # Generate====================
+    lineFirstNumX, lineSecondNumX, lineThirdNumX, lineForthNumX = -1, -1, -1, -1
+    lineFirstNumY, lineSecondNumY, lineThirdNumY, lineForthNumY = -1, -1, -1, -1
+    lineFifthNumX = random.randint(0, 11)
+    lineFifthNumY = random.randint(0, 7)
+
+    characterImageSize = 53
+    lineFirstCharSize = 220
+    lineSecondCharSize = 160
+    lineThirdCharSize = 130
+    lineForthCharSize = 105
+    lineFifthCharSize = 95
+    # ====================
+
+    typeKnight = 0
+    typeMagician = 1
+    typeCitizen = 2
+    userHP = 3
+    totalScore = -40
+    current_time = 0.0
+
+    ui_Text = None
+    characterGenerator()
+    lineFirst = characterFirstLine()
+    lineSecond = characterSecondLine()
+    lineThird = characterThirdLine()
+    lineForth = characterForthLine()
+    lineFifth = characterFifthLine()
     slash_fx = slashEffect()
     slashad_fx = slashadEffect()
     magic_fx = magicEffect()
     heal_fx= healEffect()
     drain_fx= drainEffect()
     blood_fx = bloodEffect()
-    heart = heartImage()
+    heart = uiHeart()
     damage_fx = damageEffect()
     bless_fx= blessEffect()
     explosion_fx=explosionEffect()
+    fadeout_fx= uiFadeout()
 
-    dialogue=Dialogue()
-    ui_font=ui_Font()
-    score_ui=ScoreUI()
-
+    dialogue=uiDialogueBox()
+    score_ui=uiScore()
     background = Background()
+
     pass
 
 
 def exit():
-    global background,line_one,line_two,line_three,line_four,line_five,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_font,bless_fx,explosion_fx
+    global background,lineFirst,lineSecond,lineThird,lineForth,lineFifth,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_Text,bless_fx,explosion_fx,fadeout_fx
     del(background)
-    del(line_one)
-    del(line_two)
-    del(line_three)
-    del(line_four)
-    del (line_five)
+    del(lineFirst)
+    del(lineSecond)
+    del(lineThird)
+    del(lineForth)
+    del (lineFifth)
     del (slash_fx)
     del (magic_fx)
     del (heal_fx)
@@ -564,10 +579,9 @@ def exit():
     del (blood_fx)
     del (heart)
     del (damage_fx)
-    del(pause)
-    del(dialogue)
-    del(ui_font)
-    del(score_ui)
+    del (dialogue)
+    del (ui_Text)
+    del (fadeout_fx)
     pass
 
 
@@ -587,7 +601,7 @@ def get_frame_time():
 
 
 def handle_events():
-    global right_key_down,left_key_down,up_key_down,x_key_down,isPlaying
+    global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying
     events=get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -596,32 +610,27 @@ def handle_events():
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
             Interrogation()
-        if isPlaying == False:
+        if animationIsPlaying == False:
             if event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
-                right_key_down = True
-                isPlaying=True
+                attackJudge(typeKnight)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
-                left_key_down = True
-                isPlaying = True
+                attackJudge(typeMagician)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
-                up_key_down=True
-                isPlaying = True
+                attackJudge(typeCitizen)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_m:
                 x_key_down = True
-                isPlaying = True
-            elif event.type == SDL_KEYDOWN and event.key == SDLK_z:
-                haveDamage()
+                animationIsPlaying = True
     pass
 
 def update():
-    createCharacter()
+    global gameovertime
+    characterGenerator()
     frame_time=get_frame_time()
-
-    line_one.update(frame_time)
-    line_two.update(frame_time)
-    line_three.update(frame_time)
-    line_four.update(frame_time)
-    line_five.update(frame_time)
+    lineFirst.update(frame_time)
+    lineSecond.update(frame_time)
+    lineThird.update(frame_time)
+    lineForth.update(frame_time)
+    lineFifth.update(frame_time)
     slash_fx.update()
     slashad_fx.update()
     magic_fx.update()
@@ -633,6 +642,12 @@ def update():
     explosion_fx.update()
     damage_fx.update(frame_time)
     score_ui.update()
+    if userHP <=0:
+        fadeout_fx.update(frame_time)
+        gameovertime+=frame_time
+        if gameovertime >= 1.5:
+            game_framework.change_state(gameover_state)
+
     pass
 
 
@@ -641,63 +656,186 @@ def draw():
     background.draw()
     score_ui.draw()
     #------------------
-    line_five.draw()
-    line_four.draw()
-    line_three.draw()
-    line_two.draw()
-    line_one.draw()
+    lineFifth.draw()
+    lineForth.draw()
+    lineThird.draw()
+    lineSecond.draw()
+    lineFirst.draw()
     #-------------------
     if left_key_down == True:
-        if isPlaying == True:
+        if animationIsPlaying == True:
             blood_fx.draw()
             slash_fx.draw()
             slashad_fx.draw()
 
     if right_key_down == True:
-        if isPlaying==True:
+        if animationIsPlaying==True:
             blood_fx.draw()
             drain_fx.draw()
             magic_fx.draw()
 
     if up_key_down == True:
-        if isPlaying == True:
+        if animationIsPlaying == True:
             heal_fx.draw()
 
     if x_key_down == True:
-        if isPlaying == True:
+        if animationIsPlaying == True:
             blood_fx.draw()
             bless_fx.draw()
             explosion_fx.draw()
     #-----------------
     heart.draw()
-    if interrogation==True:
+    if interrogationFlag==True:
         dialogue.draw()
-        ui_font.draw()
+        ui_Text.draw()
     if damagePlay==True:
         damage_fx.draw()
+    if userHP <= 0:
+        fadeout_fx.draw()
 
     update_canvas()
 
     delay(0.01)
     pass
 
+def characterGenerator():
+    global lineFirstNumX,lineSecondNumX,lineThirdNumX,lineForthNumX,lineFifthNumX
+    global lineFirstNumY,lineSecondNumY,lineThirdNumY,lineForthNumY,lineFifthNumY
+    global totalScore,characterType,ui_Text
+    if(lineFirstNumX == -1):
+        lineFirstNumX = lineSecondNumX
+        lineFirstNumY = lineSecondNumY
+        lineSecondNumX=-1
+        lineSecondNumY=-1
+        totalScore += 10
+        if ui_Text==None and lineFirstNumX != -1:
+            ui_Text = uiDialogueText()
+    if (lineSecondNumX == -1):
+        lineSecondNumX = lineThirdNumX
+        lineSecondNumY = lineThirdNumY
+        lineThirdNumX = -1
+        lineThirdNumY = -1
+    if (lineThirdNumX == -1):
+        lineThirdNumX = lineForthNumX
+        lineThirdNumY = lineForthNumY
+        lineForthNumX = -1
+        lineForthNumY = -1
+    if (lineForthNumX == -1):
+        lineForthNumX = lineFifthNumX
+        lineForthNumY = lineFifthNumY
+        lineFifthNumX = -1
+        lineFifthNumY = -1
+    if (lineFifthNumX == -1):
+        lineFifthNumX = random.randrange(0, 11)
+        lineFifthNumY = random.randrange(0, 7)
+
+
 def Interrogation():
-    global interrogation
-    interrogation=True
+    global interrogationFlag
+    interrogationFlag=True
 
 def haveDamage():
     global userHP,damagePlay
-    userHP-=1
-    damagePlay=True
+    if damagePlay== False:
+        userHP-=1
+        damagePlay=True
 
-def changeCharacter():
-    global interrogation,charNumX_one,charNumY_one,charNumX_two,charNumY_two,ui_font
-    interrogation = False
-    charNumX_one = -1
-    charNumY_one = -1
+def characterChanger():
+    global interrogationFlag,lineFirstNumX,lineFirstNumY,lineSecondNumX,lineSecondNumY,ui_Text,userHP
+    interrogationFlag = False
+    lineFirstNumX = -1
+    lineFirstNumY = -1
     if explosion==True:
-        charNumX_two = -1
-        charNumY_two = -1
-    del (ui_font)
-    ui_font = ui_Font()
+        lineSecondNumX = -1
+        lineSecondNumY = -1
+    del (ui_Text)
+    ui_Text = None
 
+def characterTypeGetter():
+    global lineFirstNumX,lineFirstNumY
+
+    charNumY = lineFirstNumX
+    charNumX = lineFirstNumY
+
+    if charNumX==0:
+        print('call:', (charNumX, charNumY))
+        if charNumY==0 or charNumY==1 or charNumY==2 or charNumY==3 or charNumY==6 or charNumY==7 or charNumY==9 or charNumY==10:
+            return typeKnight #Type 'knight'
+        elif charNumY == 8:
+            return typeCitizen #Type 'citizen'
+        else:
+            return typeMagician #Type 'magician'
+    elif charNumX==1:
+        print('call:', (charNumX, charNumY))
+        if charNumY==0 or charNumY== 5 or charNumY== 6 or charNumY== 7 or charNumY==11:
+            return typeKnight
+        elif charNumY == 1 or charNumY==3 or charNumY==4 or charNumY==8:
+            return typeCitizen
+        else:
+            return typeMagician
+    elif charNumX==2:
+        print('call:', (charNumX, charNumY))
+        if charNumY==1 or charNumY==3 or charNumY==9 or charNumY==11:
+            return typeKnight
+        elif charNumY == 5 or charNumY==6 or charNumY==10:
+            return typeCitizen
+        else:
+            return typeMagician
+    elif charNumX==3:
+        print('call:', (charNumX, charNumY))
+        if charNumY==3 or charNumY==4 or charNumY==8 or charNumY==9 or charNumY==10:
+            return typeKnight
+        elif charNumY == 1 or charNumY==6 or charNumY==11:
+            return typeCitizen
+        else:
+            return typeMagician
+    elif charNumX==4:
+        print('call:', (charNumX, charNumY))
+        if charNumY==0 or charNumY==1 or charNumY==2 or charNumY==5 or charNumY==6 or charNumY==7 or charNumY==8 or charNumY==10 or charNumY==11:
+            return typeKnight
+        elif charNumY == 4:
+            return typeCitizen
+        else:
+            return typeMagician
+    elif charNumX==5:
+        print('call:', (charNumX, charNumY))
+        if charNumY==0 or charNumY==1 or charNumY==2 or charNumY==3 or charNumY==5 or charNumY==6 or charNumY==7 or charNumY==10 or charNumY==11:
+            return typeKnight
+        elif charNumY == 9:
+            return typeCitizen
+        else:
+            return typeMagician
+    elif charNumX==6:
+        print('call:', (charNumX, charNumY))
+        if charNumY==3 or charNumY==4 or charNumY==5 or charNumY==7 or charNumY==8:
+            return typeKnight
+        elif charNumY == 1 or charNumY==6 or charNumY==10 or charNumY==11:
+            return typeCitizen
+        else:
+            return typeMagician
+    elif charNumX==7:
+        print('call:', (charNumX, charNumY))
+        if charNumY==0 or charNumY==9 or charNumY==11:
+            return typeKnight
+        elif charNumY == 3 or charNumY==6 or charNumY==7 or charNumY==8:
+            return typeCitizen
+        else:
+            return typeMagician
+
+def attackJudge(attackType):
+    global characterType,right_key_down,left_key_down,up_key_down,animationIsPlaying
+    attackType=int(attackType)
+    print(attackType)
+    if characterTypeGetter() == attackType:
+        print('same')
+        if attackType==typeKnight:
+            right_key_down = True
+            animationIsPlaying = True
+        elif attackType == typeCitizen:
+            up_key_down = True
+            animationIsPlaying = True
+        elif attackType == typeMagician:
+            left_key_down = True
+            animationIsPlaying = True
+    else:
+        haveDamage()

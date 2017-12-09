@@ -5,10 +5,18 @@ from pico2d import *
 
 name = "TitleState"
 image = None
+class BGMplayer:
+    def __init__(self):
+        self.BG_sound = load_music('resource\\music\\titleTheme.mp3')
+        self.BG_sound.set_volume(64)
+
+        self.BG_sound.repeat_play()
+
 
 def enter():
-    global image,gameovertime,fadeout_fx
+    global image,gameovertime,fadeout_fx,bgmplayer
     image = load_image('resource\\title.png')
+    bgmplayer = BGMplayer()
     gameovertime = 0
     pass
 

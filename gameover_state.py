@@ -8,11 +8,20 @@ from pico2d import *
 
 name = "GameOverState"
 image = None
+class BGMplayer:
+    def __init__(self):
+        self.BG_sound = load_music('resource\\music\\gameoverTheme.mp3')
+        self.BG_sound.set_volume(64)
+
+        self.BG_sound.repeat_play()
+
 
 
 def enter():
-    global image
+    global image,bgmplayer
     image = load_image('resource\\gameover.png')
+
+    bgmplayer=BGMplayer()
     pass
 
 

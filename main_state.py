@@ -10,7 +10,16 @@ name = "MainState"
 
 class Background:
     def __init__(self):
+        self.soundloudness=64
         self.image = load_image('resource\\background.png')
+        self.BG_sound = load_music('resource\\music\\mainTheme.mp3')
+        self.BG_sound.set_volume(self.soundloudness)
+
+        self.BG_sound.repeat_play()
+
+    def update(self,frame_time):
+        self.soundloudness -= 1
+        self.BG_sound.set_volume(self.soundloudness)
 
     def draw(self):
         self.image.draw(640, 360)
@@ -72,7 +81,7 @@ class characterFirstLine:
                     self.x, self.y = 640 - lineFirstCharSize / 2, 100
                     self.flyspdY= 500 * random.randrange(3, 6)
                     self.delayTime=0
-                    characterChanger()
+                    characterChanger(1)
             if self.delayTime>5:
                 animationIsPlaying = False
                 right_key_down = False
@@ -83,7 +92,7 @@ class characterFirstLine:
                 self.x, self.y = 640 - lineFirstCharSize / 2, 100
                 self.flyspdY = 500 * random.randrange(3, 6)
                 self.delayTime = 0
-                characterChanger()
+                characterChanger(1)
                 explosion = False
 
     def draw(self):
@@ -116,7 +125,6 @@ class characterSecondLine:
 
 class characterThirdLine:
     def __init__(self):
-
         self.x = 640 - lineThirdCharSize / 2
         self.y =250
         self.dir=-1
@@ -124,9 +132,11 @@ class characterThirdLine:
 
     def update(self,frame_time):
         self.x += self.dir
-        if self.x >= (640-lineThirdCharSize/2)+1:
+        if self.x > (640-lineThirdCharSize/2)+1:
+            self.x=(640-lineThirdCharSize/2)+1
             self.dir = -2*frame_time
-        elif self.x <= (640-lineThirdCharSize/2)-1:
+        elif self.x < (640-lineThirdCharSize/2)-1:
+            self.x=(640-lineThirdCharSize/2)-1
             self.dir = 2*frame_time
         pass
 
@@ -142,9 +152,11 @@ class characterForthLine:
 
     def update(self,frame_time):
         self.x += self.dir
-        if self.x >= (640-lineForthCharSize/2)+1:
+        if self.x > (640-lineForthCharSize/2)+1:
+            self.x=(640-lineForthCharSize/2)+1
             self.dir = -2*frame_time
-        elif self.x <= (640-lineForthCharSize/2)-1:
+        elif self.x < (640-lineForthCharSize/2)-1:
+            self.x =(640-lineForthCharSize/2)-1
             self.dir = 2*frame_time
         pass
 
@@ -161,9 +173,11 @@ class characterFifthLine:
 
     def update(self,frame_time):
         self.x += self.dir
-        if self.x >= (640-lineFifthCharSize/2)+1:
+        if self.x > (640-lineFifthCharSize/2)+1:
+            self.x =(640-lineFifthCharSize/2)+1
             self.dir = -1*frame_time
-        elif self.x <= (640-lineFifthCharSize/2)-1:
+        elif self.x < (640-lineFifthCharSize/2)-1:
+            self.x =(640-lineFifthCharSize/2)-1
             self.dir = 1*frame_time
 
     def draw(self):
@@ -274,8 +288,6 @@ class uiFadeout:
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames * 192, self.Yframes * 192, 192, 192, 0, -280, 1280, 1280)
 
-
-
 #effect class=========================================================================
 
 class damageEffect:
@@ -301,7 +313,7 @@ class damageEffect:
                 self.Yframes = 3
                 self.play_frames=0
                 self.playdamage = 0
-                characterChanger()
+                characterChanger(0)
 
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames * 192, self.Yframes * 192, 192, 192, 0, -280, 1280, 1280)
@@ -490,6 +502,54 @@ class explosionEffect:
     def draw(self):
         self.image.clip_draw_to_origin(self.play_frames*512, self.Yframes*288,512,288,0,0,1280,720)
 
+class effectSound:
+    soundMagic=None
+    soundExact=None
+    def __init__(self):
+        if effectSound.soundMagic == None:
+            effectSound.soundMagic = load_wav('resource\\music\\soundMagic.wav')
+            effectSound.soundMagic.set_volume(125)
+        if effectSound.soundExact == None:
+            effectSound.soundExact = load_wav('resource\\music\\soundExact.wav')
+            effectSound.soundExact.set_volume(44)
+        if effectSound.soundExplosion == None:
+            effectSound.soundExplosion = load_wav('resource\\music\\soundExplosion.wav')
+            effectSound.soundExplosion.set_volume(125)
+        if effectSound.soundFlash == None:
+            effectSound.soundFlash = load_wav('resource\\music\\soundFlash.wav')
+            effectSound.soundFlash.set_volume(44)
+        if effectSound.soundHeal == None:
+            effectSound.soundHeal = load_wav('resource\\music\\soundHeal.wav')
+            effectSound.soundHeal.set_volume(125)
+        if effectSound.soundHit == None:
+            effectSound.soundHit = load_wav('resource\\music\\soundHit.wav')
+            effectSound.soundHit.set_volume(44)
+        if effectSound.soundLightning == None:
+            effectSound.soundLightning = load_wav('resource\\music\\soundLightning.wav')
+            effectSound.soundLightning.set_volume(44)
+
+    def soundMagicPlay(self):
+        effectSound.soundMagic.play()
+
+    def soundExactPlay(self):
+        effectSound.soundExact.play()
+
+    def soundExplosionPlay(self):
+        effectSound.soundExplosion.play()
+
+    def soundFlashPlay(self):
+        effectSound.soundFlash.play()
+
+    def soundHealPlay(self):
+        effectSound.soundHeal.play()
+
+    def soundHitPlay(self):
+        effectSound.soundHit.play()
+
+    def soundLightningPlay(self):
+        effectSound.soundLightning.play()
+
+
 #=====================================================
 
 def enter():
@@ -497,6 +557,7 @@ def enter():
     global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,damagePlay,explosion,interrogationFlag,characterType
     global lineFirstNumX,lineSecondNumX,lineThirdNumX, lineForthNumX,lineFifthNumX,lineFirstNumY, lineSecondNumY, lineThirdNumY, lineForthNumY,lineFifthNumY
     global characterImageSize,lineFirstCharSize,lineSecondCharSize,lineThirdCharSize,lineForthCharSize,lineFifthCharSize,typeKnight,typeMagician,typeCitizen,userHP,totalScore,current_time,gameovertime
+    global effectsound
 
     right_key_down = False
     left_key_down = False
@@ -561,11 +622,14 @@ def enter():
     score_ui=uiScore()
     background = Background()
 
+    effectsound=effectSound()
+
+    print('all resource is initialized..')
     pass
 
 
 def exit():
-    global background,lineFirst,lineSecond,lineThird,lineForth,lineFifth,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_Text,bless_fx,explosion_fx,fadeout_fx
+    global background,lineFirst,lineSecond,lineThird,lineForth,lineFifth,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_Text,bless_fx,explosion_fx,fadeout_fx,effectsound
     del(background)
     del(lineFirst)
     del(lineSecond)
@@ -582,6 +646,7 @@ def exit():
     del (dialogue)
     del (ui_Text)
     del (fadeout_fx)
+    del (effectsound)
     pass
 
 
@@ -644,6 +709,7 @@ def update():
     score_ui.update()
     if userHP <=0:
         fadeout_fx.update(frame_time)
+        background.update(frame_time)
         gameovertime+=frame_time
         if gameovertime >= 1.5:
             game_framework.change_state(gameover_state)
@@ -740,9 +806,11 @@ def haveDamage():
         userHP-=1
         damagePlay=True
 
-def characterChanger():
+def characterChanger(exactsign):
     global interrogationFlag,lineFirstNumX,lineFirstNumY,lineSecondNumX,lineSecondNumY,ui_Text,userHP
     interrogationFlag = False
+    if(exactsign==1):
+        effectsound.soundExactPlay()
     lineFirstNumX = -1
     lineFirstNumY = -1
     if explosion==True:
@@ -829,6 +897,7 @@ def attackJudge(attackType):
     if characterTypeGetter() == attackType:
         print('same')
         if attackType==typeKnight:
+            effectsound.soundMagicPlay()
             right_key_down = True
             animationIsPlaying = True
         elif attackType == typeCitizen:

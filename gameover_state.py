@@ -18,8 +18,13 @@ class BGMplayer:
 
 
 def enter():
-    global image,bgmplayer
+    global image,bgmplayer,font
     image = load_image('resource\\gameover.png')
+
+    font = None
+
+    if font == None:
+        font = load_font('resource\\moris9.TTF', 40)
 
     bgmplayer=BGMplayer()
     pass
@@ -47,6 +52,8 @@ def handle_events():
 def draw():
     clear_canvas()
     image.draw(640,360)
+    drawScore = main_state.totalScore
+    font.draw(550, 250, 'Score: %d' % (int(drawScore)), (255, 255, 255))
     update_canvas()
     pass
 

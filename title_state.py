@@ -14,7 +14,7 @@ class BGMplayer:
 
 
 def enter():
-    global image,gameovertime,fadeout_fx,bgmplayer
+    global image,gameovertime,fadeout_fx,bgmplayer,font
     image = load_image('resource\\title.png')
     bgmplayer = BGMplayer()
     gameovertime = 0
@@ -43,6 +43,7 @@ def handle_events():
 def draw():
     clear_canvas()
     image.draw(640,360)
+
     update_canvas()
     pass
 

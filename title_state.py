@@ -12,7 +12,6 @@ class BGMplayer:
 
         self.BG_sound.repeat_play()
 
-
 def enter():
     global image,gameovertime,fadeout_fx,bgmplayer,font
     image = load_image('resource\\title.png')

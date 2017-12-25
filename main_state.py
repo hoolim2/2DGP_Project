@@ -24,7 +24,7 @@ class Background:
     def draw(self):
         global totalScore
         self.backgroundimage.draw(640, 360)
-        if totalScore>1000:
+        if totalScore>500:
             self.backgroundhardimage.draw(640, 360)
 
 #cahracter class=======================
@@ -47,13 +47,25 @@ class characterFirstLine:
                 lineFirstCharSize = 400
                 self.x = 640 - lineFirstCharSize / 2
             elif damagePlay == False:
-                lineFirstCharSize = 220
-            if self.x >= (640-lineFirstCharSize/2)+5:
-                self.x= (640 - lineFirstCharSize / 2) + 5
-                self.dir = -10*frame_time
-            elif self.x <= (640-lineFirstCharSize/2)-5:
-                self.x= (640 - lineFirstCharSize / 2) - 5
-                self.dir = 10*frame_time
+                if challengerdice == 0:
+                    lineFirstCharSize = 220
+                elif challengerdice ==1:
+                    lineFirstCharSize = 350
+
+            if challengerdice == 0:
+                if self.x >= (640-lineFirstCharSize/2)+5:
+                    self.x= (640 - lineFirstCharSize / 2) + 5
+                    self.dir = -10*frame_time
+                elif self.x <= (640-lineFirstCharSize/2)-5:
+                    self.x= (640 - lineFirstCharSize / 2) - 5
+                    self.dir = 10*frame_time
+            elif challengerdice == 1:
+                if self.x >= (640-lineFirstCharSize/2)+5:
+                    self.x= (640 - lineFirstCharSize / 2) + 5
+                    self.dir = -20*frame_time
+                elif self.x <= (640-lineFirstCharSize/2)-5:
+                    self.x= (640 - lineFirstCharSize / 2) - 5
+                    self.dir = 20*frame_time
         #play Anmation
         elif animationIsPlaying==True:
             self.delayTime+=frame_time
@@ -222,14 +234,18 @@ class uiDialogueText:
         self.image=None
         characterType = characterTypeGetter()
         if self.image==None:
-            if characterType==0:
-                self.image = load_image('dialogue\\%d.png'%random.randint(1, 10))
-            elif characterType==1:
-                self.image = load_image('dialogue\\%d.png' % random.randint(11, 20))
-            elif characterType==2:
-                self.image = load_image('dialogue\\%d.png' % random.randint(21, 30))
-            else:
-                self.image = load_image('dialogue\\0.png')
+            if challengerdice ==0:
+                if characterType==0:
+                    self.image = load_image('dialogue\\%d.png'%random.randint(1, 10))
+                elif characterType==1:
+                    self.image = load_image('dialogue\\%d.png' % random.randint(11, 20))
+                elif characterType==2:
+                    self.image = load_image('dialogue\\%d.png' % random.randint(21, 30))
+                else:
+                    self.image = load_image('dialogue\\0.png')
+            elif challengerdice == 1:
+                self.image = load_image('dialogue\\40.png')
+
 
     def update(self):
         pass
@@ -273,28 +289,70 @@ class uiFadeout:
 
 class uiTimeGauge:
     def __init__(self):
-        self.timeamount=-0.2
+        self.rageamount=rageAmount
+        self.strenthamount = strenthAmount
+        self.timeamount=-200
+        self.framepass = 0
+        self.gaugeAnimateframe=0
+        self.spacebarAnimateframe=0
         self.image = load_image('resource\\ui_timegauge.png')
         self.barimage =load_image('resource\\ui_timegaugebar.png')
+        self.ragegaugeimage =load_image('resource\\ui_ragegauge.png')
+        self.ragegaugebarimage = load_image('resource\\ui_ragegaugebar.png')
+        self.pressspaceimage = load_image('resource\\ui_pressspacebar.png')
 
     def update(self,frametime):
-        if animationIsPlaying == True or damagePlay == True:
-            self.timeamount = 0.0
+        global strenthAmount,challengedelayTime,interrogationFlag
+        self.rageamount = rageAmount
         self.timeamount+=float(frametime)/globalTimelimit
-        print(self.timeamount)
-        if(self.timeamount>1 and self.timeamount<1.2):
+        self.strenthamount=strenthAmount
+        self.framepass += 1
+        if self.framepass%4 == 0:
+            self.spacebarAnimateframe=(self.spacebarAnimateframe+1)%2
+        if self.rageamount > 0.999:
+            if self.framepass >= 20:
+                self.gaugeAnimateframe=(self.gaugeAnimateframe+1)%2
+                self.framepass = 0
+        else:
+            self.gaugeAnimateframe=0
+        if animationIsPlaying == True or damagePlay == True or self.timeamount < 0 or challengerdice == 1:
+            self.timeamount = 0.0
+        if self.timeamount>1 and self.timeamount<1.2:
             effectsound.soundHitPlay()
             haveDamage()
             self.timeamount=0.0
-        elif(self.timeamount>1.2):
+        if challengerdice == 1:
+            if interrogationFlag == False:
+                interrogationFlag =True
+            if challengedelayTime >2:
+                if self.strenthamount < 0:
+                    effectsound.soundHitPlay()
+                    haveDamage()
+                    self.strenthamount = 0.5
+                    strenthAmount = 0.5
+                    challengedelayTime=0
+                if self.strenthamount > 1:
+                    attackJudge(characterTypeGetter())
+                    self.strenthamount = 0.5
+                    strenthAmount = 0.5
+                    challengedelayTime=0
+        if(self.timeamount>1.2):
             self.timeamount = 0.0
         pass
 
     def draw(self):
-        if animationIsPlaying == False and damagePlay == False:
-            self.barimage.clip_draw_to_origin(0, 0, 251, 21,541,390,251-((self.timeamount)*251),21)
+        self.ragegaugebarimage.clip_draw_to_origin(0, 0, 35, int(self.rageamount * 330), 105, 210,35,self.rageamount * 330)
+        self.ragegaugeimage.clip_draw_to_origin(self.gaugeAnimateframe*40,0,40, 350,100,200,40, 350)
+        if self.rageamount > 0.999:
+            self.pressspaceimage.clip_draw_to_origin(self.gaugeAnimateframe*152,0,152,27,50,170,152, 27)
+        if animationIsPlaying == False and damagePlay == False and challengerdice == 0:
+            self.barimage.clip_draw_to_origin(0, 0, int(251-((self.timeamount)*251)), 21,541,390,251-((self.timeamount)*251),21)
             self.image.draw(640, 400, 316, 21)
-
+        if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
+            if challengedelayTime > 2:
+                self.barimage.clip_draw_to_origin(0, 0, int(0+((self.strenthamount)*251)), 21,541,190,0+((self.strenthamount)*251), 21)
+                self.image.draw(640, 200, 316, 21)
+            self.pressspaceimage.clip_draw_to_origin(self.spacebarAnimateframe * 152, 0, 152, 27, 570, 150, 152, 27)
 #effect class=========================================================================
 
 class damageEffect:
@@ -498,8 +556,10 @@ class explosionEffect:
         self.image = load_image('resource\\fx_explosion.png')
 
     def update(self):
+        global rageAmount
         if right_key_down==False and up_key_down==False and left_key_down==False:
             if animationIsPlaying==True:
+                rageAmount-=0.005
                 if self.framepass>=6:
                     self.play_frames = (self.play_frames + 1) % 4
                     self.framepass=0
@@ -586,7 +646,7 @@ def enter():
     global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,damagePlay,explosion,interrogationFlag,characterType
     global lineFirstNumX,lineSecondNumX,lineThirdNumX, lineForthNumX,lineFifthNumX,lineFirstNumY, lineSecondNumY, lineThirdNumY, lineForthNumY,lineFifthNumY
     global characterImageSize,lineFirstCharSize,lineSecondCharSize,lineThirdCharSize,lineForthCharSize,lineFifthCharSize,typeKnight,typeMagician,typeCitizen,userHP,totalScore,current_time,gameovertime,globalTimelimit
-    global effectsound,timeamount,font
+    global effectsound,timeamount,font,rageAmount,challengerdice,strenthAmount,challengedelayTime
 
     right_key_down = False
     left_key_down = False
@@ -609,6 +669,7 @@ def enter():
     lineFifth = None
     background = None
     ui_Text = None
+    challengerdice=0
     characterType = -1
     gameovertime = 0
     globalTimelimit=10
@@ -631,8 +692,11 @@ def enter():
     typeMagician = 1
     typeCitizen = 2
     userHP = 3
+    rageAmount = 0.0
+    strenthAmount = 0.5
     totalScore = 0
     current_time = 0.0
+    challengedelayTime=0.0
 
     ui_Text = None
     characterGenerator()
@@ -701,7 +765,7 @@ def get_frame_time():
 
 
 def handle_events():
-    global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying
+    global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,rageAmount,challengerdice,strenthAmount
     events=get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -709,7 +773,12 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
-            Interrogation()
+            if challengerdice==0:
+                if rageAmount > 0.999:
+                    x_key_down = True
+                    animationIsPlaying = True
+            if challengerdice==1 and challengedelayTime >2:
+                strenthAmount += 0.05
         if animationIsPlaying == False:
             if event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
                 attackJudge(typeKnight)
@@ -717,13 +786,12 @@ def handle_events():
                 attackJudge(typeMagician)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
                 attackJudge(typeCitizen)
-            elif event.type == SDL_KEYDOWN and event.key == SDLK_m:
-                x_key_down = True
-                animationIsPlaying = True
+            elif event.type == SDL_KEYDOWN and event.key == SDLK_z:
+                Interrogation()
     pass
 
 def update():
-    global gameovertime,globalTimelimit
+    global gameovertime,globalTimelimit,rageAmount,strenthAmount,challengedelayTime
 
     characterGenerator()
     frame_time=get_frame_time()
@@ -743,6 +811,12 @@ def update():
     explosion_fx.update()
     damage_fx.update(frame_time)
     uitimegauge.update(frame_time)
+
+    if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
+        challengedelayTime+= 1*frame_time
+        if challengedelayTime>2:
+            strenthAmount -=0.3*frame_time
+
     if userHP <=0:
         fadeout_fx.update(frame_time)
         background.update(frame_time)
@@ -790,7 +864,8 @@ def draw():
     uitimegauge.draw()
     if interrogationFlag==True:
         dialogue.draw()
-        ui_Text.draw()
+        if ui_Text!=None:
+            ui_Text.draw()
     if damagePlay==True:
         damage_fx.draw()
     if userHP <= 0:
@@ -846,22 +921,26 @@ def haveDamage():
         damagePlay=True
 
 def characterChanger(exactsign):
-    global interrogationFlag,lineFirstNumX,lineFirstNumY,lineSecondNumX,lineSecondNumY,ui_Text,userHP,globalTimelimit,totalScore
+    global interrogationFlag,lineFirstNumX,lineFirstNumY,lineSecondNumX,lineSecondNumY,ui_Text,userHP,globalTimelimit,totalScore,rageAmount
     interrogationFlag = False
     if(exactsign==1):
         totalScore += 50
-        globalTimelimit -=1
+        globalTimelimit -=0.8
         if globalTimelimit < 1:
             globalTimelimit = 1.0
         effectsound.soundExactPlay()
+        if rageAmount < 1:
+            rageAmount += 0.5
     lineFirstNumX = -1
     lineFirstNumY = -1
     if explosion==True:
+        rageAmount = 0.0
         totalScore += 370
         lineSecondNumX = -1
         lineSecondNumY = -1
     del (ui_Text)
     ui_Text = None
+    challengerDice()
 
 def characterTypeGetter():
     global lineFirstNumX,lineFirstNumY
@@ -954,3 +1033,7 @@ def attackJudge(attackType):
     else:
         effectsound.soundHitPlay()
         haveDamage()
+
+def challengerDice():
+    global challengerdice
+    challengerdice=random.randint(0,1)

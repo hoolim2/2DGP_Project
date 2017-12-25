@@ -8,23 +8,29 @@ name = "MainState"
 
 class Background:
     def __init__(self):
+        global playgameTimer
         self.soundloudness=64
         self.backgroundimage = load_image('resource\\background.png')
         self.backgroundhardimage = load_image('resource\\background_hard.png')
         self.image = load_image('resource\\background.png')
         self.BG_sound = load_music('resource\\music\\mainTheme.mp3')
         self.BG_sound.set_volume(self.soundloudness)
+        self.BGMplay=False
 
-        self.BG_sound.repeat_play()
+
 
     def update(self,frame_time):
+
         self.soundloudness -= 1
         self.BG_sound.set_volume(self.soundloudness)
 
     def draw(self):
-        global totalScore
+        global totalScore,playgameTimer
+        if playgameTimer>3 and self.BGMplay == False:
+            self.BG_sound.repeat_play()
+            self.BGMplay=True
         self.backgroundimage.draw(640, 360)
-        if totalScore>500:
+        if totalScore>1000:
             self.backgroundhardimage.draw(640, 360)
 
 #cahracter class=======================
@@ -205,9 +211,29 @@ class uiHeart:
         self.HP = userHP
         self.size=120
         self.dir=0.2
+        self.readyimageAnimatorX=0
+        self.readyimageAnimatorY = 120
+        self.goimageAnimator =0
         self.image = load_image('resource\\heart.png')
+        self.readyimage = load_image('resource\\ui_ready.png')
+        self.goimage = load_image('resource\\ui_go.png')
 
-    def update(self):
+    def update(self,frame_time):
+        if playgameTimer < 10:
+            if playgameTimer <3:
+                if self.readyimageAnimatorX<600:
+                    self.readyimageAnimatorX+= 300 * frame_time
+            if playgameTimer > 2.5:
+                if self.readyimageAnimatorY > 0:
+                    self.readyimageAnimatorX += 2000 * frame_time
+                    self.readyimageAnimatorY -= 600 * frame_time
+            if playgameTimer > 3 and playgameTimer < 3.3:
+                if self.goimageAnimator <20:
+                    self.goimageAnimator += frame_time*160
+            if playgameTimer > 3.3 and playgameTimer < 3.5:
+                if self.goimageAnimator > 10:
+                    self.goimageAnimator -= frame_time * 80
+
         self.HP = userHP
         self.x -= self.dir/2
         self.y -= self.dir/2
@@ -218,6 +244,10 @@ class uiHeart:
             self.dir= -0.5
 
     def draw(self):
+        if playgameTimer <3:
+            self.readyimage.draw(640, 520, self.readyimageAnimatorX, self.readyimageAnimatorY)
+        if playgameTimer > 3 and playgameTimer < 3.5 :
+            self.goimage.draw(640, 520, self.goimageAnimator*60,  self.goimageAnimator*12)
         if (self.HP >= 1):
             self.image.clip_draw_to_origin(0, 0, 512, 512, self.x, self.y,self.size ,self.size)
             if (self.HP >= 2):
@@ -291,7 +321,7 @@ class uiTimeGauge:
     def __init__(self):
         self.rageamount=rageAmount
         self.strenthamount = strenthAmount
-        self.timeamount=-200
+        self.timeamount=0.0
         self.framepass = 0
         self.gaugeAnimateframe=0
         self.spacebarAnimateframe=0
@@ -300,6 +330,8 @@ class uiTimeGauge:
         self.ragegaugeimage =load_image('resource\\ui_ragegauge.png')
         self.ragegaugebarimage = load_image('resource\\ui_ragegaugebar.png')
         self.pressspaceimage = load_image('resource\\ui_pressspacebar.png')
+        self.powgaugeimage = load_image('resource\\ui_powgauge.png')
+        self.powgaugebarimage = load_image('resource\\ui_powgaugebar.png')
 
     def update(self,frametime):
         global strenthAmount,challengedelayTime,interrogationFlag
@@ -321,10 +353,13 @@ class uiTimeGauge:
             effectsound.soundHitPlay()
             haveDamage()
             self.timeamount=0.0
-        if challengerdice == 1:
-            if interrogationFlag == False:
+        if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
+            if interrogationFlag == False and challengedelayTime <2:
                 interrogationFlag =True
             if challengedelayTime >2:
+                if interrogationFlag == True:
+                    effectsound.sounVSPlay()
+                    interrogationFlag = False
                 if self.strenthamount < 0:
                     effectsound.soundHitPlay()
                     haveDamage()
@@ -341,17 +376,17 @@ class uiTimeGauge:
         pass
 
     def draw(self):
-        self.ragegaugebarimage.clip_draw_to_origin(0, 0, 35, int(self.rageamount * 330), 105, 210,35,self.rageamount * 330)
-        self.ragegaugeimage.clip_draw_to_origin(self.gaugeAnimateframe*40,0,40, 350,100,200,40, 350)
+        self.ragegaugebarimage.clip_draw_to_origin(0, 0, 35, int(self.rageamount * 330), 105, 110,35,self.rageamount * 330)
+        self.ragegaugeimage.clip_draw_to_origin(self.gaugeAnimateframe*40,0,40, 350,100,100,40, 350)
         if self.rageamount > 0.999:
-            self.pressspaceimage.clip_draw_to_origin(self.gaugeAnimateframe*152,0,152,27,50,170,152, 27)
+            self.pressspaceimage.clip_draw_to_origin(self.gaugeAnimateframe*152,0,152,27,50,70,152, 27)
         if animationIsPlaying == False and damagePlay == False and challengerdice == 0:
-            self.barimage.clip_draw_to_origin(0, 0, int(251-((self.timeamount)*251)), 21,541,390,251-((self.timeamount)*251),21)
+            self.barimage.clip_draw_to_origin(0, 0, int(251-((self.timeamount)*251)), 21,540,390,251-((self.timeamount)*253),21)
             self.image.draw(640, 400, 316, 21)
         if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
             if challengedelayTime > 2:
-                self.barimage.clip_draw_to_origin(0, 0, int(0+((self.strenthamount)*251)), 21,541,190,0+((self.strenthamount)*251), 21)
-                self.image.draw(640, 200, 316, 21)
+                self.powgaugebarimage.clip_draw_to_origin(0, 0, int(0+((self.strenthamount)*251)), 21,531,177,0+((self.strenthamount)*281), 41)
+                self.powgaugeimage.draw(640,200,350,30)
             self.pressspaceimage.clip_draw_to_origin(self.spacebarAnimateframe * 152, 0, 152, 27, 570, 150, 152, 27)
 #effect class=========================================================================
 
@@ -588,6 +623,7 @@ class effectSound:
     soundHit=None
     soundLightning=None
     soundSlash=None
+    soundVS=None
     def __init__(self):
         if effectSound.soundMagic == None:
             effectSound.soundMagic = load_wav('resource\\music\\soundMagic.wav')
@@ -613,6 +649,9 @@ class effectSound:
         if effectSound.soundSlash == None:
             effectSound.soundSlash = load_wav('resource\\music\\soundSlash.wav')
             effectSound.soundSlash.set_volume(64)
+        if effectSound.soundVS== None:
+            effectSound.soundVS=load_wav('resource\\music\\soundVS.wav')
+            effectSound.soundVS.set_volume(64)
 
     def soundMagicPlay(self):
         effectSound.soundMagic.play()
@@ -638,6 +677,9 @@ class effectSound:
     def soundSlashPlay(self):
         effectSound.soundSlash.play()
 
+    def sounVSPlay(self):
+        effectSound.soundVS.play()
+
 
 #=====================================================
 
@@ -646,7 +688,7 @@ def enter():
     global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,damagePlay,explosion,interrogationFlag,characterType
     global lineFirstNumX,lineSecondNumX,lineThirdNumX, lineForthNumX,lineFifthNumX,lineFirstNumY, lineSecondNumY, lineThirdNumY, lineForthNumY,lineFifthNumY
     global characterImageSize,lineFirstCharSize,lineSecondCharSize,lineThirdCharSize,lineForthCharSize,lineFifthCharSize,typeKnight,typeMagician,typeCitizen,userHP,totalScore,current_time,gameovertime,globalTimelimit
-    global effectsound,timeamount,font,rageAmount,challengerdice,strenthAmount,challengedelayTime
+    global effectsound,timeamount,font,rageAmount,challengerdice,strenthAmount,challengedelayTime,playgameTimer,playGameFlag,frame_time
 
     right_key_down = False
     left_key_down = False
@@ -673,6 +715,8 @@ def enter():
     characterType = -1
     gameovertime = 0
     globalTimelimit=10
+    playgameTimer=0.0
+    playGameFlag= False
 
     # Generate====================
     lineFirstNumX, lineSecondNumX, lineThirdNumX, lineForthNumX = -1, -1, -1, -1
@@ -761,7 +805,10 @@ def get_frame_time():
 
     frame_time = get_time() - current_time
     current_time += frame_time
-    return frame_time
+    if frame_time<1:
+        return frame_time
+    else:
+        return 0
 
 
 def handle_events():
@@ -779,50 +826,56 @@ def handle_events():
                     animationIsPlaying = True
             if challengerdice==1 and challengedelayTime >2:
                 strenthAmount += 0.05
-        if animationIsPlaying == False:
+        if animationIsPlaying == False and playgameTimer > 3:
             if event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
-                attackJudge(typeKnight)
+                if challengerdice == 0:
+                    attackJudge(typeKnight)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
-                attackJudge(typeMagician)
+                if challengerdice == 0:
+                    attackJudge(typeMagician)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
-                attackJudge(typeCitizen)
+                if challengerdice == 0:
+                    attackJudge(typeCitizen)
             elif event.type == SDL_KEYDOWN and event.key == SDLK_z:
-                Interrogation()
+                if challengerdice == 0:
+                    Interrogation()
     pass
 
 def update():
-    global gameovertime,globalTimelimit,rageAmount,strenthAmount,challengedelayTime
+    global gameovertime,globalTimelimit,rageAmount,strenthAmount,challengedelayTime,playgameTimer
 
     characterGenerator()
     frame_time=get_frame_time()
-    lineFirst.update(frame_time)
-    lineSecond.update(frame_time)
-    lineThird.update(frame_time)
-    lineForth.update(frame_time)
-    lineFifth.update(frame_time)
-    slash_fx.update()
-    slashad_fx.update()
-    magic_fx.update()
-    heal_fx.update()
-    drain_fx.update()
-    blood_fx.update()
-    heart.update()
-    bless_fx.update()
-    explosion_fx.update()
-    damage_fx.update(frame_time)
-    uitimegauge.update(frame_time)
+    playgameTimer += frame_time
+    heart.update(frame_time)
+    if playgameTimer > 3:
+        lineFirst.update(frame_time)
+        lineSecond.update(frame_time)
+        lineThird.update(frame_time)
+        lineForth.update(frame_time)
+        lineFifth.update(frame_time)
+        slash_fx.update()
+        slashad_fx.update()
+        magic_fx.update()
+        heal_fx.update()
+        drain_fx.update()
+        blood_fx.update()
+        bless_fx.update()
+        explosion_fx.update()
+        damage_fx.update(frame_time)
+        uitimegauge.update(frame_time)
 
-    if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
-        challengedelayTime+= 1*frame_time
-        if challengedelayTime>2:
-            strenthAmount -=0.3*frame_time
+        if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
+            challengedelayTime+= 1*frame_time
+            if challengedelayTime>2:
+                strenthAmount -=0.3*frame_time
 
-    if userHP <=0:
-        fadeout_fx.update(frame_time)
-        background.update(frame_time)
-        gameovertime+=frame_time
-        if gameovertime >= 1.5:
-            game_framework.change_state(gameover_state)
+        if userHP <=0:
+            fadeout_fx.update(frame_time)
+            background.update(frame_time)
+            gameovertime+=frame_time
+            if gameovertime >= 1.5:
+                game_framework.change_state(gameover_state)
 
     pass
 
@@ -860,8 +913,8 @@ def draw():
             bless_fx.draw()
             explosion_fx.draw()
     #uidraw-----------------
-    heart.draw()
     uitimegauge.draw()
+    heart.draw()
     if interrogationFlag==True:
         dialogue.draw()
         if ui_Text!=None:
@@ -930,7 +983,7 @@ def characterChanger(exactsign):
             globalTimelimit = 1.0
         effectsound.soundExactPlay()
         if rageAmount < 1:
-            rageAmount += 0.5
+            rageAmount += 0.2
     lineFirstNumX = -1
     lineFirstNumY = -1
     if explosion==True:
@@ -1036,4 +1089,8 @@ def attackJudge(attackType):
 
 def challengerDice():
     global challengerdice
-    challengerdice=random.randint(0,1)
+    rolldice=random.randint(0, 10)
+    if rolldice < 2:
+        challengerdice= 1 #challenger
+    elif rolldice >= 2:
+        challengerdice = 0  #not challenger

@@ -205,6 +205,17 @@ class characterFifthLine:
         self.image.clip_draw_to_origin(lineFifthNumX * characterImageSize, lineFifthNumY * characterImageSize, characterImageSize, characterImageSize, self.x, self.y, lineFifthCharSize, lineFifthCharSize)
 
 #UI class==========================================================================
+class uiTutorial:
+    def __init__(self):
+        self.tutorialiamge1=load_image('resource\\tutorial1.png')
+        self.tutorialiamge2=load_image('resource\\tutorial2.png')
+
+    def draw(self):
+        if tutorialPage==0:
+            self.tutorialiamge1.draw(640, 360)
+        elif tutorialPage==1:
+            self.tutorialiamge2.draw(640, 360)
+
 class uiHeart:
     def __init__(self):
         self.x,self.y=50,600
@@ -332,9 +343,18 @@ class uiTimeGauge:
         self.pressspaceimage = load_image('resource\\ui_pressspacebar.png')
         self.powgaugeimage = load_image('resource\\ui_powgauge.png')
         self.powgaugebarimage = load_image('resource\\ui_powgaugebar.png')
+        self.arrowuiright = load_image('resource\\ui_arrowright.png')
+        self.arrowuileft = load_image('resource\\ui_arrowleft.png')
+        self.arrowuiMoveX=0
+        self.arrowuiMoveDirX = 5
 
     def update(self,frametime):
         global strenthAmount,challengedelayTime,interrogationFlag
+        self.arrowuiMoveX+=self.arrowuiMoveDirX*frametime
+        self.arrowuiMoveDirX+=200*frametime
+        if self.arrowuiMoveX>20:
+            self.arrowuiMoveX=20
+            self.arrowuiMoveDirX=-100
         self.rageamount = rageAmount
         self.timeamount+=float(frametime)/globalTimelimit
         self.strenthamount=strenthAmount
@@ -383,6 +403,8 @@ class uiTimeGauge:
         if animationIsPlaying == False and damagePlay == False and challengerdice == 0:
             self.barimage.clip_draw_to_origin(0, 0, int(251-((self.timeamount)*251)), 21,540,390,251-((self.timeamount)*253),21)
             self.image.draw(640, 400, 316, 21)
+            self.arrowuiright.draw(940+self.arrowuiMoveX,210)
+            self.arrowuileft.draw(340-self.arrowuiMoveX, 210)
         if animationIsPlaying == False and damagePlay == False and challengerdice == 1:
             if challengedelayTime > 2:
                 self.powgaugebarimage.clip_draw_to_origin(0, 0, int(0+((self.strenthamount)*251)), 21,531,177,0+((self.strenthamount)*281), 41)
@@ -688,7 +710,7 @@ def enter():
     global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,damagePlay,explosion,interrogationFlag,characterType
     global lineFirstNumX,lineSecondNumX,lineThirdNumX, lineForthNumX,lineFifthNumX,lineFirstNumY, lineSecondNumY, lineThirdNumY, lineForthNumY,lineFifthNumY
     global characterImageSize,lineFirstCharSize,lineSecondCharSize,lineThirdCharSize,lineForthCharSize,lineFifthCharSize,typeKnight,typeMagician,typeCitizen,userHP,totalScore,current_time,gameovertime,globalTimelimit
-    global effectsound,timeamount,font,rageAmount,challengerdice,strenthAmount,challengedelayTime,playgameTimer,playGameFlag,frame_time
+    global effectsound,timeamount,font,rageAmount,challengerdice,strenthAmount,challengedelayTime,playgameTimer,playGameFlag,frame_time,tutorialPhase,tutorialPage,uitutorial
 
     right_key_down = False
     left_key_down = False
@@ -717,6 +739,8 @@ def enter():
     globalTimelimit=10
     playgameTimer=0.0
     playGameFlag= False
+    tutorialPhase= True
+    tutorialPage=0
 
     # Generate====================
     lineFirstNumX, lineSecondNumX, lineThirdNumX, lineForthNumX = -1, -1, -1, -1
@@ -762,6 +786,7 @@ def enter():
     fadeout_fx= uiFadeout()
 
     dialogue=uiDialogueBox()
+    uitutorial=uiTutorial()
     uitimegauge=uiTimeGauge()
     background = Background()
 
@@ -772,7 +797,7 @@ def enter():
 
 
 def exit():
-    global background,lineFirst,lineSecond,lineThird,lineForth,lineFifth,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_Text,bless_fx,explosion_fx,fadeout_fx,effectsound
+    global background,lineFirst,lineSecond,lineThird,lineForth,lineFifth,slash_fx,magic_fx,heal_fx,drain_fx,slashad_fx,blood_fx,heart,damage_fx,dialogue,ui_Text,bless_fx,explosion_fx,fadeout_fx,effectsound,uitutorial
     del(background)
     del(lineFirst)
     del(lineSecond)
@@ -790,6 +815,7 @@ def exit():
     del (ui_Text)
     del (fadeout_fx)
     del (effectsound)
+    del (uitutorial)
     pass
 
 
@@ -812,7 +838,7 @@ def get_frame_time():
 
 
 def handle_events():
-    global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,rageAmount,challengerdice,strenthAmount
+    global right_key_down,left_key_down,up_key_down,x_key_down,animationIsPlaying,rageAmount,challengerdice,strenthAmount,tutorialPhase,tutorialPage,uitutorial
     events=get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -820,12 +846,17 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
-            if challengerdice==0:
-                if rageAmount > 0.999:
-                    x_key_down = True
-                    animationIsPlaying = True
-            if challengerdice==1 and challengedelayTime >2:
-                strenthAmount += 0.05
+            if tutorialPhase == True:
+                tutorialPage += 1
+                if tutorialPage >= 2:
+                    tutorialPhase = False
+            else:
+                if challengerdice==0:
+                    if rageAmount > 0.999:
+                        x_key_down = True
+                        animationIsPlaying = True
+                if challengerdice==1 and challengedelayTime >2:
+                    strenthAmount += 0.05
         if animationIsPlaying == False and playgameTimer > 3:
             if event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
                 if challengerdice == 0:
@@ -842,12 +873,13 @@ def handle_events():
     pass
 
 def update():
-    global gameovertime,globalTimelimit,rageAmount,strenthAmount,challengedelayTime,playgameTimer
+    global gameovertime,globalTimelimit,rageAmount,strenthAmount,challengedelayTime,playgameTimer,tutorialPhase
 
     characterGenerator()
     frame_time=get_frame_time()
-    playgameTimer += frame_time
-    heart.update(frame_time)
+    if tutorialPhase == False:
+        playgameTimer += frame_time
+        heart.update(frame_time)
     if playgameTimer > 3:
         lineFirst.update(frame_time)
         lineSecond.update(frame_time)
@@ -924,6 +956,8 @@ def draw():
     if userHP <= 0:
         fadeout_fx.draw()
 
+    uitutorial.draw()
+
     drawScore = totalScore
     font.draw(950, 650, 'Score: %d' % (int(drawScore)), (255,255, 255))
     #--------------------------
@@ -978,7 +1012,7 @@ def characterChanger(exactsign):
     interrogationFlag = False
     if(exactsign==1):
         totalScore += 50
-        globalTimelimit -=0.8
+        globalTimelimit -=0.5
         if globalTimelimit < 1:
             globalTimelimit = 1.0
         effectsound.soundExactPlay()
@@ -1089,7 +1123,7 @@ def attackJudge(attackType):
 
 def challengerDice():
     global challengerdice
-    rolldice=random.randint(0, 10)
+    rolldice=random.randint(1, 10)
     if rolldice < 2:
         challengerdice= 1 #challenger
     elif rolldice >= 2:
